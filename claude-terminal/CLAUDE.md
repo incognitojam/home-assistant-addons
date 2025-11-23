@@ -62,50 +62,15 @@ XDG_STATE_HOME=/data/.local/state        # State files
 ### Home Assistant CLI (`ha`)
 Full-featured CLI for Home Assistant management with manager-level permissions.
 
-**Core Commands:**
+The `ha` command provides access to all Home Assistant Supervisor functions including core management, add-ons, backups, host system, DNS, network, and more.
+
+**Usage:**
 ```bash
-ha core info              # Show Home Assistant Core information
-ha core logs              # View Home Assistant logs
-ha core restart           # Restart Home Assistant
-ha core update            # Update Home Assistant
-ha core check             # Check configuration
+ha --help               # List all available commands
+ha <command> --help     # Get help for specific command
 ```
 
-**Add-on Management:**
-```bash
-ha addons                 # List all addons
-ha addons info <addon>    # Get addon details
-ha addons logs <addon>    # View addon logs
-ha addons start <addon>   # Start an addon
-ha addons stop <addon>    # Stop an addon
-ha addons restart <addon> # Restart an addon
-ha addons update <addon>  # Update an addon
-```
-
-**Backup Operations:**
-```bash
-ha backups               # List backups
-ha backups new           # Create new backup
-ha backups restore       # Restore from backup
-ha backups reload        # Reload backup list
-```
-
-**System Management:**
-```bash
-ha supervisor info       # Supervisor information
-ha supervisor logs       # Supervisor logs
-ha supervisor update     # Update supervisor
-ha host info            # Host system info
-ha host reboot          # Reboot host
-ha dns info             # DNS information
-ha network info         # Network configuration
-```
-
-**Help and Documentation:**
-```bash
-ha --help               # General help
-ha <command> --help     # Command-specific help
-```
+Use `ha --help` to discover all available commands and their usage.
 
 ### bashio - Home Assistant Shell Functions
 Helper functions for add-on development and debugging.
@@ -132,97 +97,31 @@ find          # File searching
 
 ## Common Tasks
 
-### Viewing Home Assistant Logs
-```bash
-# View live logs
-ha core logs -f
+### Configuration File Management
+Key configuration files are located in `/config`:
+- `configuration.yaml` - Main Home Assistant configuration
+- `automations.yaml` - Automation definitions
+- `scripts.yaml` - Script definitions
+- `secrets.yaml` - Sensitive values (API keys, passwords)
+- `custom_components/` - Custom integrations
 
-# View specific addon logs
-ha addons logs claude_terminal -f
+### Best Practice Workflow
+1. **Before making changes**: Create a backup using `ha backups`
+2. **Edit files**: Use `nano` or other text editor
+3. **Validate**: Use `ha core check` to validate configuration
+4. **Apply changes**: Restart Home Assistant or reload specific components
+5. **Monitor**: Check logs for errors after changes
 
-# Check supervisor logs
-ha supervisor logs
-```
+### Working with the ha CLI
+Use `ha --help` to discover all available commands. Common command groups include:
+- `ha core` - Core Home Assistant management
+- `ha addons` - Add-on management
+- `ha backups` - Backup operations
+- `ha supervisor` - Supervisor operations
+- `ha host` - Host system management
 
-### Checking System Status
-```bash
-# Core info
-ha core info
-
-# Supervisor status
-ha supervisor info
-
-# Host system info
-ha host info
-
-# List installed addons
-ha addons
-```
-
-### Configuration Management
-```bash
-# Check configuration validity
-ha core check
-
-# Edit main configuration
-nano /config/configuration.yaml
-
-# After config changes, restart HA
-ha core restart
-```
-
-### Backup and Restore
-```bash
-# List existing backups
-ha backups
-
-# Create full backup
-ha backups new --name "Before Changes"
-
-# Create partial backup (config only)
-ha backups new --name "Config Only" --homeassistant
-
-# Restore from backup
-ha backups restore <slug>
-```
-
-### Add-on Management
-```bash
-# List all addons with status
-ha addons
-
-# View addon details
-ha addons info addon_slug
-
-# Check addon logs
-ha addons logs addon_slug
-
-# Restart an addon
-ha addons restart addon_slug
-```
-
-### Working with Automations
-```bash
-# Edit automations
-nano /config/automations.yaml
-
-# Validate configuration
-ha core check
-
-# Reload automations (faster than full restart)
-# Use Developer Tools in HA UI, or:
-curl -X POST -H "Authorization: Bearer $SUPERVISOR_TOKEN" \
-  http://supervisor/core/api/services/automation/reload
-```
-
-### Custom Components
-```bash
-# Custom components location
-ls /config/custom_components/
-
-# View component logs
-ha core logs | grep -i "custom_component_name"
-```
+### Custom Components and Integrations
+Custom components are stored in `/config/custom_components/`. Many users install HACS (Home Assistant Community Store) for managing custom integrations.
 
 ## Home Assistant API Access
 
@@ -248,15 +147,15 @@ curl -X POST http://supervisor/core/api/services/light/turn_on \
 ## File Editing Best Practices
 
 ### Before Making Changes
-1. **Create a backup**: `ha backups new --name "Before editing"`
-2. **Validate current config**: `ha core check`
+1. **Create a backup** using `ha backups` commands
+2. **Validate current config** using `ha core check`
 3. **Review existing files**: Check current structure before modifying
 
 ### After Making Changes
-1. **Validate configuration**: `ha core check`
+1. **Validate configuration** using `ha core check`
 2. **Check for errors**: Review output carefully
 3. **Test changes**: Restart affected services
-4. **Monitor logs**: `ha core logs -f` to catch issues
+4. **Monitor logs**: Use `ha core logs` to catch issues
 
 ### Common Configuration Files
 ```
@@ -269,49 +168,22 @@ curl -X POST http://supervisor/core/api/services/light/turn_on \
 /config/secrets.yaml          # Sensitive data (API keys, passwords)
 ```
 
-## Integrations and Custom Components
-
-### Viewing Integrations
-```bash
-# Check loaded integrations in logs
-ha core logs | grep -i "setup of domain"
-
-# List custom components
-ls -la /config/custom_components/
-```
-
-### Installing Custom Components
-Many users use HACS (Home Assistant Community Store):
-```bash
-# HACS is typically in custom_components
-ls /config/custom_components/hacs/
-```
-
 ## Troubleshooting
 
 ### Check Container Health
-```bash
-# View addon logs
-ha addons logs claude_terminal
-
-# Check system resources
-ha host info
-
-# View supervisor logs for system-level issues
-ha supervisor logs
-```
+Use the `ha` CLI to:
+- View addon logs with `ha addons logs`
+- Check system resources with `ha host info`
+- View supervisor logs with `ha supervisor logs`
 
 ### Configuration Validation Errors
-```bash
-# Always validate before restart
-ha core check
+Always validate configuration using `ha core check` before restarting.
 
-# Common issues:
-# - YAML indentation (use 2 spaces, not tabs)
-# - Missing quotes around special characters
-# - Invalid entity IDs or service names
-# - Incorrect file paths
-```
+Common YAML issues:
+- Indentation (use 2 spaces, not tabs)
+- Missing quotes around special characters
+- Invalid entity IDs or service names
+- Incorrect file paths
 
 ### Authentication Issues with Claude
 ```bash
@@ -326,16 +198,9 @@ echo $ANTHROPIC_CONFIG_DIR
 ```
 
 ### Network and Connectivity
-```bash
-# Test internet connectivity
-curl -I https://www.google.com
-
-# Check DNS resolution
-nslookup home-assistant.io
-
-# View network info
-ha network info
-```
+- Test internet connectivity with `curl`
+- Check DNS resolution with `nslookup`
+- View network info with `ha network info`
 
 ## Security Considerations
 
@@ -388,41 +253,27 @@ chmod 644 /config/configuration.yaml
 - **Claude Code Docs**: https://github.com/anthropics/claude-code
 - **Add-on Repository**: https://github.com/incognitojam/home-assistant-addons
 
-### Common Commands for Information
-```bash
-ha --help                    # CLI help
-ha core info                 # Core system info
-ha supervisor info           # Supervisor details
-ha host info                 # Host system info
-ha addons info claude_terminal  # This addon's info
-```
+### Finding Information
+Use `ha --help` to explore all available commands. The CLI provides access to system info, logs, and diagnostic tools.
 
 ### Debugging
-```bash
-# Enable debug logging in configuration.yaml
-# Add to configuration.yaml:
-# logger:
-#   default: info
-#   logs:
-#     homeassistant.components.automation: debug
-
-# Then restart and check logs
-ha core restart
-ha core logs -f
+Enable debug logging in `configuration.yaml`:
+```yaml
+logger:
+  default: info
+  logs:
+    homeassistant.components.automation: debug
 ```
+
+After editing, validate with `ha core check`, then restart and monitor logs.
 
 ## Quick Reference
 
-### Essential Commands
-| Task | Command |
-|------|---------|
-| Check config | `ha core check` |
-| Restart HA | `ha core restart` |
-| View logs | `ha core logs -f` |
-| Create backup | `ha backups new --name "backup_name"` |
-| List addons | `ha addons` |
-| Edit main config | `nano /config/configuration.yaml` |
-| System info | `ha core info` |
+### Essential Tools
+- **`ha` CLI**: Use `ha --help` to explore all Home Assistant management commands
+- **`nano`**: Edit configuration files
+- **`curl`**: Make HTTP requests and test APIs
+- **`bashio::*`**: Home Assistant shell functions for logging and config access
 
 ### Important Paths
 | Purpose | Path |
