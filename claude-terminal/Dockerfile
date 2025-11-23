@@ -36,11 +36,13 @@ RUN curl -Lso /usr/bin/ha \
 RUN mkdir -p /config/claude-config
 WORKDIR /config
 
-# Copy startup script and modular scripts
+# Copy startup script, modular scripts, and Claude context documentation
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
+COPY CLAUDE.md /opt/CLAUDE.md
 RUN chmod +x /run.sh \
-    && chmod +x /opt/scripts/*.sh
+    && chmod +x /opt/scripts/*.sh \
+    && chmod 644 /opt/CLAUDE.md
 
 # Use exec form for better signal handling
 CMD ["/run.sh"]

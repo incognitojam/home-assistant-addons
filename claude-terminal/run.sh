@@ -99,6 +99,39 @@ install_tools() {
     bashio::log.info "Tools installed successfully"
 }
 
+# Install Claude context documentation to /config
+install_claude_context() {
+    local source_file="/opt/CLAUDE.md"
+    local target_file="/config/CLAUDE.md"
+
+    # Check if source file exists
+    if [ -f "$source_file" ]; then
+        # Install or update CLAUDE.md in /config
+        if [ ! -f "$target_file" ]; then
+            bashio::log.info "Installing CLAUDE.md to /config for Claude context..."
+            if cp "$source_file" "$target_file"; then
+                chmod 644 "$target_file"
+                bashio::log.info "CLAUDE.md installed successfully"
+            else
+                bashio::log.warning "Failed to install CLAUDE.md, continuing anyway..."
+            fi
+        else
+            # Update if source is newer
+            if [ "$source_file" -nt "$target_file" ]; then
+                bashio::log.info "Updating CLAUDE.md in /config..."
+                if cp "$source_file" "$target_file"; then
+                    chmod 644 "$target_file"
+                    bashio::log.info "CLAUDE.md updated successfully"
+                else
+                    bashio::log.warning "Failed to update CLAUDE.md, continuing anyway..."
+                fi
+            fi
+        fi
+    else
+        bashio::log.debug "No CLAUDE.md found in container, skipping installation"
+    fi
+}
+
 # Setup session picker script
 setup_session_picker() {
     # Copy session picker script from built-in location
@@ -190,6 +223,7 @@ main() {
 
     init_environment
     install_tools
+    install_claude_context
     setup_session_picker
     start_web_terminal
 }
