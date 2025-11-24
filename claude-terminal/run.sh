@@ -164,7 +164,7 @@ get_claude_launch_command() {
     
     if [ "$auto_launch_claude" = "true" ]; then
         # Original behavior: auto-launch Claude directly
-        echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
+        echo "clear && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
     else
         # New behavior: show interactive session picker
         if [ -f /usr/local/bin/claude-session-picker ]; then
@@ -172,7 +172,7 @@ get_claude_launch_command() {
         else
             # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
-            echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
+            echo "clear && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
         fi
     fi
 }
@@ -216,7 +216,7 @@ run_health_check() {
 
 # Main execution
 main() {
-    bashio::log.info "Initializing Claude Terminal add-on..."
+    bashio::log.info "Initializing Claude Code add-on..."
 
     # Run diagnostics first (especially helpful for VirtualBox issues)
     run_health_check

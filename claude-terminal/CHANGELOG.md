@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0
+
+### ✨ New Features
+- **Home Assistant CLI Access** (PR #1): Added direct access to Home Assistant CLI tools, including mounting `/usr/bin/ha` binary and architecture auto-detection for CLI download.
+
+### 🏷️ Rebranding
+- **Claude Terminal → Claude Code**: Updated naming throughout to align with official Anthropic branding.
+
+### 🐛 Bug Fixes
+- Fixed CLAUDE.md reference to use correct `ha addons logs` command syntax.
+
 ## 1.3.2
 
 ### 🐛 Bug Fixes

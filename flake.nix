@@ -34,7 +34,7 @@
           shellHook = ''
             echo "🏠 Home Assistant Add-on Development Environment"
             echo "Available commands:"
-            echo "  build-addon     - Build the Claude Terminal add-on"
+            echo "  build-addon     - Build the Claude Code add-on"
             echo "  run-addon       - Run the add-on locally"  
             echo "  validate-addon  - Validate add-on structure"
             echo "  lint-dockerfile - Lint the Dockerfile"
