@@ -4,7 +4,7 @@ FROM ${BUILD_FROM}
 # Build arguments for Home Assistant CLI
 ARG BUILD_ARCH
 ARG TARGETARCH
-ARG CLI_VERSION=4.38.1
+ARG CLI_VERSION=4.42.0
 
 # Map Docker's TARGETARCH to Home Assistant's architecture naming
 # Docker TARGETARCH values: amd64, arm64, arm/v7, arm/v6
