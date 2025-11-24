@@ -172,7 +172,7 @@ curl -X POST http://supervisor/core/api/services/light/turn_on \
 
 ### Check Container Health
 Use the `ha` CLI to:
-- View addon logs with `ha addons logs`
+- View addon logs with `ha addons logs <addon_slug>`
 - Check system resources with `ha host info`
 - View supervisor logs with `ha supervisor logs`
 
