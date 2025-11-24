@@ -2,7 +2,7 @@
 
 A secure, web-based terminal with Claude Code CLI pre-installed for Home Assistant.
 
-![Claude Code Screenshot](https://github.com/heytcass/home-assistant-addons/raw/main/claude-terminal/screenshot.png)
+![Claude Code Screenshot](https://github.com/incognitojam/home-assistant-addons/raw/main/claude-terminal/screenshot.png)
 
 *Claude Code running in Home Assistant*
 
