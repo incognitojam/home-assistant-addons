@@ -1,4 +1,4 @@
-# Claude Terminal
+# Claude Code
 
 A terminal interface for Anthropic's Claude Code CLI in Home Assistant.
 
@@ -9,7 +9,7 @@ This add-on provides a web-based terminal with Claude Code CLI pre-installed, al
 ## Installation
 
 1. Add this repository to your Home Assistant add-on store
-2. Install the Claude Terminal add-on
+2. Install the Claude Code add-on
 3. Start the add-on
 4. Click "OPEN WEB UI" to access the terminal
 5. On first use, follow the OAuth prompts to log in to your Anthropic account

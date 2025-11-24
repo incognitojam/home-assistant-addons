@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains Home Assistant add-ons, specifically the **Claude Terminal** add-on which provides a web-based terminal interface with Claude Code CLI pre-installed. The add-on allows Home Assistant users to access Claude AI capabilities directly from their dashboard.
+This repository contains Home Assistant add-ons, specifically the **Claude Code** add-on which provides a web-based terminal interface with Claude Code CLI pre-installed. The add-on allows Home Assistant users to access Claude AI capabilities directly from their dashboard.
 
 ## Development Environment
 
@@ -18,7 +18,7 @@ direnv allow
 ```
 
 ### Core Development Commands
-- `build-addon` - Build the Claude Terminal add-on with Podman
+- `build-addon` - Build the Claude Code add-on with Podman
 - `run-addon` - Run add-on locally on port 7681 with volume mapping
 - `lint-dockerfile` - Lint Dockerfile using hadolint
 - `test-endpoint` - Test web endpoint availability (curl localhost:7681)

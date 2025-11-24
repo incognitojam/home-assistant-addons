@@ -1,4 +1,4 @@
-# Claude Terminal for Home Assistant
+# Claude Code for Home Assistant
 
 This repository contains a custom add-on that integrates Anthropic's Claude Code CLI with Home Assistant.
 
@@ -9,12 +9,12 @@ To add this repository to your Home Assistant instance:
 1. Go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click the three dots menu in the top right corner
 3. Select **Repositories**
-4. Add the URL: `https://github.com/heytcass/home-assistant-addons`
+4. Add the URL: `https://github.com/incognitojam/home-assistant-addons`
 5. Click **Add**
 
 ## Add-ons
 
-### Claude Terminal
+### Claude Code
 
 A web-based terminal interface with Claude Code CLI pre-installed. This add-on provides a terminal environment directly in your Home Assistant dashboard, allowing you to use Claude's powerful AI capabilities for coding, automation, and configuration tasks.
 

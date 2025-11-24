@@ -1,10 +1,10 @@
-# Home Assistant Claude Terminal Environment
+# Home Assistant Claude Code Environment
 
 This document provides context for Claude Code running inside a Home Assistant add-on container.
 
 ## Environment Overview
 
-You are running inside the **Claude Terminal** add-on for Home Assistant. This is a specialized Alpine Linux container with:
+You are running inside the **Claude Code** add-on for Home Assistant. This is a specialized Alpine Linux container with:
 - Full access to Home Assistant APIs and CLI tools
 - Persistent storage in `/config` and `/data`
 - Manager-level permissions for Home Assistant operations
