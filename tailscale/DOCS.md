@@ -70,6 +70,7 @@ login_server: "https://controlplane.tailscale.com"
 share_homeassistant: disabled
 share_on_port: 443
 snat_subnet_routes: true
+ssh: false
 stateful_filtering: false
 tags:
   - tag:example
@@ -304,6 +305,50 @@ MTU" for you).
 Keep it enabled if preserving the real source IP address is not critical for
 your use case.
 
+### Option: `ssh`
+
+This option allows you to enable [Tailscale SSH][tailscale_info_ssh], which lets
+you SSH into your Home Assistant instance from any device on your tailnet without
+managing SSH keys.
+
+When not set, this option is disabled by default.
+
+Tailscale SSH uses Tailscale's built-in SSH server, which authenticates users
+based on their Tailscale identity. This means you can SSH into your Home
+Assistant device using your tailnet hostname or IP address, and authentication
+is handled automatically through Tailscale's ACLs.
+
+**Important:** Tailscale SSH requires kernel networking mode. You must set
+`userspace_networking: false` in your add-on configuration for SSH to work.
+
+To enable Tailscale SSH:
+
+1. Set `ssh: true` in your add-on configuration.
+1. Set `userspace_networking: false` in your add-on configuration.
+1. Configure SSH access in your [Tailscale ACLs][tailscale_acls]. For example:
+
+   ```json
+   {
+     "ssh": [
+       {
+         "action": "accept",
+         "src": ["autogroup:member"],
+         "dst": ["autogroup:self"],
+         "users": ["root"]
+       }
+     ]
+   }
+   ```
+
+1. Restart the add-on.
+1. SSH into your Home Assistant device using:
+
+   ```sh
+   ssh root@<tailscale-hostname>
+   ```
+
+More information: [Tailscale SSH][tailscale_info_ssh]
+
 ### Option: `stateful_filtering`
 
 This option enables stateful packet filtering on packet-forwarding nodes (exit
@@ -460,6 +505,7 @@ SOFTWARE.
 [tailscale_info_key_expiry]: https://tailscale.com/kb/1028/key-expiry
 [tailscale_info_serve]: https://tailscale.com/kb/1312/serve
 [tailscale_info_site_to_site]: https://tailscale.com/kb/1214/site-to-site
+[tailscale_info_ssh]: https://tailscale.com/kb/1193/tailscale-ssh
 [tailscale_info_subnets]: https://tailscale.com/kb/1019/subnets
 [tailscale_info_tags]: https://tailscale.com/kb/1068/tags
 [tailscale_info_taildrop]: https://tailscale.com/kb/1106/taildrop

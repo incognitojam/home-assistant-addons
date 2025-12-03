@@ -95,6 +95,21 @@ else
   options+=(--snat-subnet-routes=false)
 fi
 
+# Enable Tailscale SSH when explicitly enabled
+if bashio::config.true "ssh"; then
+  # Check if userspace networking is enabled (SSH requires kernel networking)
+  if ! bashio::config.has_value "userspace_networking" || \
+    bashio::config.true "userspace_networking";
+  then
+    bashio::log.warning \
+      "Tailscale SSH requires kernel networking mode." \
+      "Please disable userspace_networking in the add-on configuration."
+  fi
+  options+=(--ssh)
+else
+  options+=(--ssh=false)
+fi
+
 # Get configured tags
 tags=$(bashio::config "tags//[] | join(\",\")" "")
 options+=(--advertise-tags="${tags}")
