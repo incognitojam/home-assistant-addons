@@ -1,6 +1,6 @@
 ---
 name: Tailscale
-version: dev
+version: 1.0.0
 slug: tailscale-incognitojam
 description: Zero config VPN for building secure networks
 url: https://github.com/incognitojam/home-assistant-addons
