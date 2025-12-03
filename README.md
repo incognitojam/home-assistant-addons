@@ -1,6 +1,6 @@
-# Claude Code for Home Assistant
+# incognitojam's Home Assistant Add-ons
 
-This repository contains a custom add-on that integrates Anthropic's Claude Code CLI with Home Assistant.
+This repository contains custom add-ons for Home Assistant.
 
 ## Installation
 
