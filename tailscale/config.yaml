@@ -14,6 +14,8 @@ arch:
   - amd64
 init: false
 hassio_api: true
+hassio_role: manager
+homeassistant_api: true
 host_network: true
 host_dbus: true
 privileged:
@@ -22,6 +24,7 @@ privileged:
 devices:
   - /dev/net/tun
 map:
+  - config:rw
   - share:rw
 ports:
   41641/udp: null

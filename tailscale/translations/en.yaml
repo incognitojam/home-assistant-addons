@@ -80,8 +80,9 @@ configuration:
     name: Tailscale SSH
     description: >-
       This option allows you to enable Tailscale SSH, which lets you SSH into
-      your Home Assistant instance from any device on your tailnet without
-      managing SSH keys. Requires userspace networking to be disabled.
+      the add-on container from any device on your tailnet without managing SSH
+      keys. Provides access to Home Assistant config files and the `ha` CLI.
+      Requires userspace networking to be disabled.
       When not set, this option is disabled by default.
   stateful_filtering:
     name: Stateful packet filtering

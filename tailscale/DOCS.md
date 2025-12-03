@@ -308,8 +308,8 @@ your use case.
 ### Option: `ssh`
 
 This option allows you to enable [Tailscale SSH][tailscale_info_ssh], which lets
-you SSH into your Home Assistant instance from any device on your tailnet without
-managing SSH keys.
+you SSH into the Tailscale add-on container from any device on your tailnet
+without managing SSH keys.
 
 When not set, this option is disabled by default.
 
@@ -317,6 +317,23 @@ Tailscale SSH uses Tailscale's built-in SSH server, which authenticates users
 based on their Tailscale identity. This means you can SSH into your Home
 Assistant device using your tailnet hostname or IP address, and authentication
 is handled automatically through Tailscale's ACLs.
+
+When connected via SSH, you have access to:
+
+- **Home Assistant configuration files** at `/config/` (read/write access)
+- **The `ha` CLI** for managing Home Assistant, add-ons, backups, and more
+- **Tailscale CLI** for network diagnostics (`tailscale status`, `tailscale ping`, etc.)
+- **Taildrop files** at `/share/taildrop/`
+
+Example `ha` CLI commands:
+
+```sh
+ha core check          # Validate configuration
+ha core restart        # Restart Home Assistant
+ha addons list         # List installed add-ons
+ha backups list        # List backups
+ha host info           # View host system info
+```
 
 **Important:** Tailscale SSH requires kernel networking mode. You must set
 `userspace_networking: false` in your add-on configuration for SSH to work.
