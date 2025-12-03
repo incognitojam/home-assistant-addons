@@ -76,6 +76,13 @@ configuration:
       To support advanced Site-to-site networking (eg. to traverse multiple
       networks), you can disable this functionality.
       When not set, this option is enabled by default.
+  ssh:
+    name: Tailscale SSH
+    description: >-
+      This option allows you to enable Tailscale SSH, which lets you SSH into
+      your Home Assistant instance from any device on your tailnet without
+      managing SSH keys. Requires userspace networking to be disabled.
+      When not set, this option is disabled by default.
   stateful_filtering:
     name: Stateful packet filtering
     description: >-
