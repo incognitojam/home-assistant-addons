@@ -31,6 +31,22 @@ Features:
 
 [Documentation](claude-terminal/DOCS.md)
 
+### Tailscale
+
+A fork of the [Home Assistant Community Add-on: Tailscale](https://github.com/hassio-addons/addon-tailscale) providing a zero config VPN for building secure networks. This add-on installs Tailscale on your Home Assistant instance, creating a secure network between your servers, computers, and cloud instances.
+
+Features:
+- Zero configuration VPN that works from anywhere
+- Exit node support for routing all traffic through Home Assistant
+- Subnet routing to access your local network remotely
+- MagicDNS for easy device addressing
+- Tailscale Serve and Funnel for HTTPS access to Home Assistant
+- Taildrop for receiving files from other Tailscale devices
+- App connector support
+- Headscale (self-hosted control server) compatibility
+
+[Documentation](tailscale/DOCS.md)
+
 ## Support
 
 If you have any questions or issues with this add-on, please create an issue in this repository.
