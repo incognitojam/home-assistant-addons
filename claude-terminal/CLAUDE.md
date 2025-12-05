@@ -169,6 +169,22 @@ curl -s "http://supervisor/core/api/config" \
 - Without the `Authorization` header, Core API requests fail with `401: Unauthorized`
 - For GET requests, do **not** include `Content-Type: application/json` - it may cause auth failures
 - Always quote URLs to avoid shell parsing issues
+- **CRITICAL: Never use pipes (`|`) with environment variables** - they get stripped during command preprocessing
+
+**Processing API responses with jq:**
+```bash
+# ✗ WRONG - Variables disappear in pipes, causing 401 errors
+curl -s "http://supervisor/core/api/states" -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" | jq
+
+# ✓ CORRECT - Save to temp file, then process
+curl -s "http://supervisor/core/api/states/light.kitchen" -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" > /tmp/response.json
+jq -r '.state' /tmp/response.json
+
+# ✓ CORRECT - Use backticks to store in variable, then save to file for processing
+DATA=`curl -s "http://supervisor/core/api/states/light.kitchen" -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"`
+printf "%s" "${DATA}" > /tmp/data.json
+jq -r '.attributes.brightness' /tmp/data.json
+```
 
 ## File Editing Best Practices
 
