@@ -25,7 +25,8 @@ ANTHROPIC_CONFIG_DIR=/data/.config/claude  # Claude credentials
 XDG_CONFIG_HOME=/data/.config            # Configuration files
 XDG_CACHE_HOME=/data/.cache              # Cache directory
 XDG_STATE_HOME=/data/.local/state        # State files
-SUPERVISOR_TOKEN                         # Auth token for Core API (auto-set)
+SUPERVISOR_TOKEN                         # Auth token for Core API (auto-injected)
+HASSIO_TOKEN                             # Alias for SUPERVISOR_TOKEN (same value)
 ```
 
 ### Key Directories
@@ -143,29 +144,34 @@ curl -s http://supervisor/core/info
 ```
 
 ### Home Assistant Core API (Auth Required)
-The Core API requires the `SUPERVISOR_TOKEN` for authentication. This token is automatically set in the container environment.
+The Core API requires authentication via the `SUPERVISOR_TOKEN` environment variable. This token is automatically injected by the Supervisor when the container starts.
+
+**Note**: `HASSIO_TOKEN` is an alias for `SUPERVISOR_TOKEN` - both contain the same value and either can be used.
 
 ```bash
 # Get all entity states
-curl -s http://supervisor/core/api/states \
+curl -s "http://supervisor/core/api/states" \
   -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
 
 # Get a specific entity
-curl -s http://supervisor/core/api/states/light.living_room \
+curl -s "http://supervisor/core/api/states/light.living_room" \
   -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
 
-# Call a service
-curl -s -X POST http://supervisor/core/api/services/light/turn_on \
+# Call a service (POST requests need Content-Type)
+curl -s -X POST "http://supervisor/core/api/services/light/turn_on" \
   -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"entity_id": "light.living_room"}'
 
 # Get system config
-curl -s http://supervisor/core/api/config \
+curl -s "http://supervisor/core/api/config" \
   -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
 ```
 
-**Note**: Without the `Authorization` header, Core API requests will fail with a 401 Unauthorized error.
+**Important**:
+- Without the `Authorization` header, Core API requests fail with `401: Unauthorized`
+- For GET requests, do **not** include `Content-Type: application/json` - it may cause auth failures
+- Always quote URLs to avoid shell parsing issues
 
 ## File Editing Best Practices
 
