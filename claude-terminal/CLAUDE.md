@@ -25,6 +25,8 @@ ANTHROPIC_CONFIG_DIR=/data/.config/claude  # Claude credentials
 XDG_CONFIG_HOME=/data/.config            # Configuration files
 XDG_CACHE_HOME=/data/.cache              # Cache directory
 XDG_STATE_HOME=/data/.local/state        # State files
+SUPERVISOR_TOKEN                         # Auth token for HA APIs (auto-injected)
+HASSIO_TOKEN                             # Legacy alias for SUPERVISOR_TOKEN
 ```
 
 ### Key Directories
@@ -125,24 +127,48 @@ Custom components are stored in `/config/custom_components/`. Many users install
 
 ## Home Assistant API Access
 
-### Supervisor API
-Available via localhost with automatic authentication:
+### Supervisor API (No Auth Required)
 ```bash
-curl -X GET http://supervisor/core/info
-curl -X GET http://supervisor/addons
-curl -X GET http://supervisor/backups
+# Get supervisor info
+curl -s http://supervisor/info
+
+# List add-ons
+curl -s http://supervisor/addons
+
+# List backups
+curl -s http://supervisor/backups
+
+# Get core info
+curl -s http://supervisor/core/info
 ```
 
-### Home Assistant Core API
-```bash
-# Get states
-curl -X GET http://supervisor/core/api/states
+### Home Assistant Core API (Auth Required)
+The Core API at `http://supervisor/core/api` requires the `SUPERVISOR_TOKEN` for authentication.
 
-# Call a service
-curl -X POST http://supervisor/core/api/services/light/turn_on \
+```bash
+# Get all entity states
+curl -s "http://supervisor/core/api/states" \
+  -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
+
+# Get a specific entity
+curl -s "http://supervisor/core/api/states/light.living_room" \
+  -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
+
+# Call a service (POST requests need Content-Type)
+curl -s -X POST "http://supervisor/core/api/services/light/turn_on" \
+  -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"entity_id": "light.living_room"}'
+
+# Get system config
+curl -s "http://supervisor/core/api/config" \
+  -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"
 ```
+
+**Important**:
+- Without the `Authorization` header, Core API requests fail with `401: Unauthorized`
+- For GET requests, do **not** include `Content-Type: application/json` - it may cause auth failures
+- Always quote URLs to avoid shell parsing issues
 
 ## File Editing Best Practices
 
