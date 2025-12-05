@@ -34,7 +34,7 @@ options:
     description: "Auto-start Claude on terminal open (disable for session picker)"
   auto_update_claude:
     name: "Auto-update Claude Code"
-    description: "Update Claude Code CLI to latest version on container start"
+    description: "Update Claude Code CLI to latest version when opening terminal"
 schema:
   auto_launch_claude: bool?
   auto_update_claude: bool?

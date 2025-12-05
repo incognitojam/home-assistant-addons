@@ -99,40 +99,6 @@ install_tools() {
     bashio::log.info "Tools installed successfully"
 }
 
-# Update Claude Code CLI to latest version
-update_claude_code() {
-    local auto_update_claude
-
-    # Get configuration value, default to true
-    auto_update_claude=$(bashio::config 'auto_update_claude' 'true')
-
-    if [ "$auto_update_claude" != "true" ]; then
-        bashio::log.info "Auto-update disabled, skipping Claude Code update"
-        return 0
-    fi
-
-    bashio::log.info "Checking for Claude Code updates..."
-
-    # Get current version
-    local current_version
-    current_version=$(claude --version 2>/dev/null || echo "unknown")
-    bashio::log.info "Current Claude Code version: ${current_version}"
-
-    # Update to latest version
-    bashio::log.info "Updating Claude Code CLI to latest version..."
-    if npm install -g @anthropic-ai/claude-code@latest 2>&1; then
-        local new_version
-        new_version=$(claude --version 2>/dev/null || echo "unknown")
-        if [ "$current_version" != "$new_version" ]; then
-            bashio::log.info "Claude Code updated: ${current_version} -> ${new_version}"
-        else
-            bashio::log.info "Claude Code is already at the latest version: ${new_version}"
-        fi
-    else
-        bashio::log.warning "Failed to update Claude Code, continuing with existing version"
-    fi
-}
-
 # Install Claude context documentation to /config
 install_claude_context() {
     local source_file="/opt/CLAUDE.md"
@@ -192,21 +158,29 @@ setup_session_picker() {
 # Determine Claude launch command based on configuration
 get_claude_launch_command() {
     local auto_launch_claude
-    
-    # Get configuration value, default to true for backward compatibility
+    local auto_update_claude
+
+    # Get configuration values
     auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
-    
+    auto_update_claude=$(bashio::config 'auto_update_claude' 'true')
+
+    # Build update command if enabled
+    local update_cmd=""
+    if [ "$auto_update_claude" = "true" ]; then
+        update_cmd="echo 'Updating Claude Code...' && npm install -g @anthropic-ai/claude-code@latest 2>/dev/null && "
+    fi
+
     if [ "$auto_launch_claude" = "true" ]; then
-        # Original behavior: auto-launch Claude directly
-        echo "clear && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
+        # Original behavior: auto-launch Claude directly (with optional update)
+        echo "clear && echo 'Welcome to Claude Code!' && echo '' && ${update_cmd}echo 'Starting Claude...' && node \$(which claude)"
     else
         # New behavior: show interactive session picker
         if [ -f /usr/local/bin/claude-session-picker ]; then
-            echo "clear && /usr/local/bin/claude-session-picker"
+            echo "clear && ${update_cmd}/usr/local/bin/claude-session-picker"
         else
             # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
-            echo "clear && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && sleep 1 && node \$(which claude)"
+            echo "clear && echo 'Welcome to Claude Code!' && echo '' && ${update_cmd}echo 'Starting Claude...' && node \$(which claude)"
         fi
     fi
 }
@@ -257,7 +231,6 @@ main() {
 
     init_environment
     install_tools
-    update_claude_code
     install_claude_context
     setup_session_picker
     start_web_terminal
