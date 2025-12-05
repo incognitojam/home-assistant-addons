@@ -127,15 +127,7 @@ Custom components are stored in `/config/custom_components/`. Many users install
 
 ## Home Assistant API Access
 
-This add-on has API access enabled via its configuration:
-- `hassio_api: true` → Supervisor API at `http://supervisor/`
-- `homeassistant_api: true` → Core API at `http://supervisor/core/api`
-- `hassio_role: manager` → Manager-level permissions
-
-The Supervisor injects `SUPERVISOR_TOKEN` (and legacy alias `HASSIO_TOKEN`) into the container environment for authentication.
-
 ### Supervisor API (No Auth Required)
-The Supervisor API endpoints are available without authentication from within add-on containers:
 ```bash
 # Get supervisor info
 curl -s http://supervisor/info
