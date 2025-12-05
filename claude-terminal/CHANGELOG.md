@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.2
+
+### 📚 Documentation
+- **Documented Bash tool pipe limitation**: Added critical warning and workarounds for environment variable stripping when using pipes (`|`) in Claude Code Bash tool commands. This affects `SUPERVISOR_TOKEN` and other environment variables, causing 401 auth errors when piping API responses to `jq`.
+
 ## 1.4.1
 
 ### 📚 Documentation
