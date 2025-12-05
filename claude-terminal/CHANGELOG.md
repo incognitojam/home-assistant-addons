@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1
+
+### 📚 Documentation
+- **Improved container authentication documentation** (PR #11): Clarified in-container authentication instructions in CLAUDE.md with better guidance for users.
+
 ## 1.4.0
 
 ### ✨ New Features
