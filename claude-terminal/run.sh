@@ -99,6 +99,40 @@ install_tools() {
     bashio::log.info "Tools installed successfully"
 }
 
+# Update Claude Code CLI to latest version
+update_claude_code() {
+    local auto_update_claude
+
+    # Get configuration value, default to true
+    auto_update_claude=$(bashio::config 'auto_update_claude' 'true')
+
+    if [ "$auto_update_claude" != "true" ]; then
+        bashio::log.info "Auto-update disabled, skipping Claude Code update"
+        return 0
+    fi
+
+    bashio::log.info "Checking for Claude Code updates..."
+
+    # Get current version
+    local current_version
+    current_version=$(claude --version 2>/dev/null || echo "unknown")
+    bashio::log.info "Current Claude Code version: ${current_version}"
+
+    # Update to latest version
+    bashio::log.info "Updating Claude Code CLI to latest version..."
+    if npm install -g @anthropic-ai/claude-code@latest 2>&1; then
+        local new_version
+        new_version=$(claude --version 2>/dev/null || echo "unknown")
+        if [ "$current_version" != "$new_version" ]; then
+            bashio::log.info "Claude Code updated: ${current_version} -> ${new_version}"
+        else
+            bashio::log.info "Claude Code is already at the latest version: ${new_version}"
+        fi
+    else
+        bashio::log.warning "Failed to update Claude Code, continuing with existing version"
+    fi
+}
+
 # Install Claude context documentation to /config
 install_claude_context() {
     local source_file="/opt/CLAUDE.md"
@@ -223,6 +257,7 @@ main() {
 
     init_environment
     install_tools
+    update_claude_code
     install_claude_context
     setup_session_picker
     start_web_terminal
