@@ -25,8 +25,8 @@ ANTHROPIC_CONFIG_DIR=/data/.config/claude  # Claude credentials
 XDG_CONFIG_HOME=/data/.config            # Configuration files
 XDG_CACHE_HOME=/data/.cache              # Cache directory
 XDG_STATE_HOME=/data/.local/state        # State files
-SUPERVISOR_TOKEN                         # Auth token for Core API (auto-injected)
-HASSIO_TOKEN                             # Alias for SUPERVISOR_TOKEN (same value)
+SUPERVISOR_TOKEN                         # Auth token for HA APIs (auto-injected)
+HASSIO_TOKEN                             # Legacy alias for SUPERVISOR_TOKEN
 ```
 
 ### Key Directories
@@ -127,8 +127,15 @@ Custom components are stored in `/config/custom_components/`. Many users install
 
 ## Home Assistant API Access
 
+This add-on has API access enabled via its configuration:
+- `hassio_api: true` → Supervisor API at `http://supervisor/`
+- `homeassistant_api: true` → Core API at `http://supervisor/core/api`
+- `hassio_role: manager` → Manager-level permissions
+
+The Supervisor injects `SUPERVISOR_TOKEN` (and legacy alias `HASSIO_TOKEN`) into the container environment for authentication.
+
 ### Supervisor API (No Auth Required)
-The Supervisor API endpoints are available without authentication:
+The Supervisor API endpoints are available without authentication from within add-on containers:
 ```bash
 # Get supervisor info
 curl -s http://supervisor/info
@@ -144,9 +151,7 @@ curl -s http://supervisor/core/info
 ```
 
 ### Home Assistant Core API (Auth Required)
-The Core API requires authentication via the `SUPERVISOR_TOKEN` environment variable. This token is automatically injected by the Supervisor when the container starts.
-
-**Note**: `HASSIO_TOKEN` is an alias for `SUPERVISOR_TOKEN` - both contain the same value and either can be used.
+The Core API at `http://supervisor/core/api` requires the `SUPERVISOR_TOKEN` for authentication.
 
 ```bash
 # Get all entity states
