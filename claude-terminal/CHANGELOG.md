@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+### ✨ New Features
+- **Auto-update Claude Code CLI**: Claude Code is now automatically updated to the latest version when opening the terminal
+  - Ensures users always have the latest features and fixes without rebuilding the add-on
+  - New `auto_update_claude` configuration option (enabled by default)
+  - Updates happen before Claude launches, so built-in self-update restarts are no longer needed
+
 ## 1.4.2
 
 ### 📚 Documentation
