@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.3
+
+### 🔄 Dependencies
+- **Updated Home Assistant CLI**: Bumped from 4.42.0 to 4.43.0, which includes new `docker migrate-storage-driver` command
+
 ## 1.5.2
 
 ### 🛠️ Improvements
