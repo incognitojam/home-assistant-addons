@@ -167,7 +167,7 @@ get_claude_launch_command() {
     # Build update command if enabled
     local update_cmd=""
     if [ "$auto_update_claude" = "true" ]; then
-        update_cmd="echo 'Updating Claude Code...' && npm install -g @anthropic-ai/claude-code@latest 2>/dev/null && "
+        update_cmd="echo 'Updating Claude Code...' && npm install -g @anthropic-ai/claude-code@latest --loglevel=error --no-fund --no-audit && clear && "
     fi
 
     if [ "$auto_launch_claude" = "true" ]; then

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.2
+
+### 🛠️ Improvements
+- **Cleaner update output**: Use npm flags (`--loglevel=error --no-fund --no-audit`) instead of suppressing all output, so errors are still visible if update fails
+
 ## 1.5.1
 
 ### 🛠️ Improvements
