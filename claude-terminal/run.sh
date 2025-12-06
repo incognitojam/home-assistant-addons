@@ -172,7 +172,7 @@ get_claude_launch_command() {
 
     if [ "$auto_launch_claude" = "true" ]; then
         # Original behavior: auto-launch Claude directly (with optional update)
-        echo "clear && echo 'Welcome to Claude Code!' && echo '' && ${update_cmd}echo 'Starting Claude...' && node \$(which claude)"
+        echo "clear && ${update_cmd}node \$(which claude)"
     else
         # New behavior: show interactive session picker
         if [ -f /usr/local/bin/claude-session-picker ]; then
@@ -180,7 +180,7 @@ get_claude_launch_command() {
         else
             # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
-            echo "clear && echo 'Welcome to Claude Code!' && echo '' && ${update_cmd}echo 'Starting Claude...' && node \$(which claude)"
+            echo "clear && ${update_cmd}node \$(which claude)"
         fi
     fi
 }

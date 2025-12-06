@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1
+
+### 🛠️ Improvements
+- **Cleaner terminal startup**: Removed welcome messages for faster, cleaner launch
+- **Hidden update output**: npm install output is now suppressed during auto-update
+
 ## 1.5.0
 
 ### ✨ New Features
