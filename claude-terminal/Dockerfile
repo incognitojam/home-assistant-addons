@@ -24,12 +24,19 @@ RUN if [ -z "$BUILD_ARCH" ]; then \
 
 # Install packages in a single layer to minimize image size
 # Add retry logic for npm installation to handle network issues
+# Alpine/musl dependencies for Claude Code native binaries
+ENV USE_BUILTIN_RIPGREP=0
+
 RUN apk add --no-cache \
     nodejs \
     npm \
     bash \
     curl \
+    git \
+    libgcc \
+    libstdc++ \
     nano \
+    ripgrep \
     && (npm config set registry https://registry.npmjs.org/ || true) \
     && (npm config set fetch-retries 3 || true) \
     && (npm config set fetch-retry-mintimeout 20000 || true) \
