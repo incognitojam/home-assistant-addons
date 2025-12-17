@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.4
+
+### ✨ New Features
+- **Added git**: Git is now available in the container for version control operations
+
+### 🛠️ Improvements
+- **Alpine musl compatibility**: Added required dependencies for Claude Code native binaries
+  - Added `libgcc`, `libstdc++`, and `ripgrep` packages
+  - Set `USE_BUILTIN_RIPGREP=0` environment variable for proper ripgrep integration
+
 ## 1.5.3
 
 ### 🔄 Dependencies
