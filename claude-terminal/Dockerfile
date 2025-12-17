@@ -23,10 +23,6 @@ RUN if [ -z "$BUILD_ARCH" ]; then \
     fi
 
 # Install packages in a single layer to minimize image size
-# Add retry logic for npm installation to handle network issues
-# Alpine/musl dependencies for Claude Code native binaries
-ENV USE_BUILTIN_RIPGREP=0
-
 RUN apk add --no-cache \
     nodejs \
     npm \
@@ -36,20 +32,14 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++ \
     nano \
-    ripgrep \
-    && (npm config set registry https://registry.npmjs.org/ || true) \
-    && (npm config set fetch-retries 3 || true) \
-    && (npm config set fetch-retry-mintimeout 20000 || true) \
-    && (npm config set fetch-retry-maxtimeout 120000 || true) \
-    && (npm config set fetch-timeout 300000 || true) \
-    && for i in 1 2 3; do \
-        echo "Attempt $i: Installing Claude Code CLI..." && \
-        npm install -g @anthropic-ai/claude-code@latest && \
-        echo "Successfully installed Claude Code CLI" && \
-        break || \
-        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
-    done \
-    && npm cache clean --force
+    ripgrep
+
+# Install Claude Code using native installer
+# Alpine/musl requires USE_BUILTIN_RIPGREP=0 with system ripgrep installed
+ENV USE_BUILTIN_RIPGREP=0
+ENV PATH="/root/.claude/local/bin:${PATH}"
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && claude --version
 
 # Install Home Assistant CLI
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \
