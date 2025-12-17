@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.5
+
+### 🔄 Changes
+- **Native Claude Code installer**: Switched from npm to official native installer (`curl -fsSL https://claude.ai/install.sh | bash`)
+  - Required for latest Claude Code features (faster code diffs, improved performance)
+  - Uses official signed binaries from Anthropic
+  - Includes built-in auto-update capability
+  - Simplified installation without npm retry logic
+
 ## 1.5.4
 
 ### ✨ New Features
