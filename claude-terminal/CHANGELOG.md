@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.6
+
+### 🐛 Bug Fixes
+- **Fixed native installer build**: Use correct path `~/.local/bin/claude` for native installer
+
 ## 1.5.5
 
 ### 🔄 Changes
