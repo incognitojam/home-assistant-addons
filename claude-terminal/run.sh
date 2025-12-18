@@ -37,6 +37,10 @@ init_environment() {
         echo 'export PATH="/root/.local/bin:${PATH}"' >> /root/.bashrc
     fi
 
+    # Create symlink so Claude finds itself at $HOME/.local/bin
+    mkdir -p "$data_home/.local/bin"
+    ln -sf /root/.local/bin/claude "$data_home/.local/bin/claude" 2>/dev/null || true
+
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
