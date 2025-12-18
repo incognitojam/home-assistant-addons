@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.9
+
+### 🐛 Bug Fixes
+- **Fixed native install detection**: Create symlink at `$HOME/.local/bin/claude` so Claude finds itself correctly
+
 ## 1.5.8
 
 ### 🐛 Bug Fixes
