@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.7
+
+### 🐛 Bug Fixes
+- **Fixed claude invocation**: Run `claude` directly instead of through Node.js (`node $(which claude)`)
+- **Fixed auto-update**: Use native `claude update` command instead of npm
+
 ## 1.5.6
 
 ### 🐛 Bug Fixes

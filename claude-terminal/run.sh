@@ -164,15 +164,15 @@ get_claude_launch_command() {
     auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
     auto_update_claude=$(bashio::config 'auto_update_claude' 'true')
 
-    # Build update command if enabled
+    # Build update command if enabled (native installer uses 'claude update')
     local update_cmd=""
     if [ "$auto_update_claude" = "true" ]; then
-        update_cmd="echo 'Updating Claude Code...' && npm install -g @anthropic-ai/claude-code@latest --loglevel=error --no-fund --no-audit && clear && "
+        update_cmd="echo 'Updating Claude Code...' && claude update --yes 2>/dev/null; clear && "
     fi
 
     if [ "$auto_launch_claude" = "true" ]; then
         # Original behavior: auto-launch Claude directly (with optional update)
-        echo "clear && ${update_cmd}node \$(which claude)"
+        echo "clear && ${update_cmd}claude"
     else
         # New behavior: show interactive session picker
         if [ -f /usr/local/bin/claude-session-picker ]; then
@@ -180,7 +180,7 @@ get_claude_launch_command() {
         else
             # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
-            echo "clear && ${update_cmd}node \$(which claude)"
+            echo "clear && ${update_cmd}claude"
         fi
     fi
 }
