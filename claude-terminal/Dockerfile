@@ -37,9 +37,9 @@ RUN apk add --no-cache \
 # Install Claude Code using native installer
 # Alpine/musl requires USE_BUILTIN_RIPGREP=0 with system ripgrep installed
 ENV USE_BUILTIN_RIPGREP=0
-ENV PATH="/root/.claude/local/bin:${PATH}"
+ENV PATH="/root/.local/bin:${PATH}"
 RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && /root/.claude/local/bin/claude --version
+    && /root/.local/bin/claude --version
 
 # Install Home Assistant CLI
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \
