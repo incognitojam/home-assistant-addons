@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.6
+
+### 🐛 Bug Fixes
+- **Fixed native installer build**: Use absolute path for claude binary verification during Docker build
+
 ## 1.5.5
 
 ### 🔄 Changes
