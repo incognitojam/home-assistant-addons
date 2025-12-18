@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.10
+
+### 🐛 Bug Fixes
+- **Fixed PATH check**: Add `$HOME/.local/bin` to PATH (not just symlink) to satisfy Claude's PATH validation
+
 ## 1.5.9
 
 ### 🐛 Bug Fixes

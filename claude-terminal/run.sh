@@ -32,9 +32,10 @@ init_environment() {
     export XDG_DATA_HOME="/data/.local/share"
 
     # Ensure claude binary is in PATH (both for this script and spawned shells)
-    export PATH="/root/.local/bin:${PATH}"
-    if ! grep -q '/root/.local/bin' /root/.bashrc 2>/dev/null; then
-        echo 'export PATH="/root/.local/bin:${PATH}"' >> /root/.bashrc
+    # Add both /root/.local/bin (where it's installed) and $HOME/.local/bin (where Claude expects it)
+    export PATH="$data_home/.local/bin:/root/.local/bin:${PATH}"
+    if ! grep -q '/.local/bin' /root/.bashrc 2>/dev/null; then
+        echo 'export PATH="$HOME/.local/bin:/root/.local/bin:${PATH}"' >> /root/.bashrc
     fi
 
     # Create symlink so Claude finds itself at $HOME/.local/bin
