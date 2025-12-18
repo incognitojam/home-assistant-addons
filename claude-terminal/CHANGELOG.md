@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.8
+
+### 🐛 Bug Fixes
+- **Fixed PATH warning**: Ensure `~/.local/bin` is in PATH for spawned shells
+
 ## 1.5.7
 
 ### 🐛 Bug Fixes

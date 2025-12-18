@@ -30,7 +30,13 @@ init_environment() {
     export XDG_CACHE_HOME="$cache_dir"
     export XDG_STATE_HOME="$state_dir"
     export XDG_DATA_HOME="/data/.local/share"
-    
+
+    # Ensure claude binary is in PATH (both for this script and spawned shells)
+    export PATH="/root/.local/bin:${PATH}"
+    if ! grep -q '/root/.local/bin' /root/.bashrc 2>/dev/null; then
+        echo 'export PATH="/root/.local/bin:${PATH}"' >> /root/.bashrc
+    fi
+
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
@@ -40,7 +46,7 @@ init_environment() {
 
     bashio::log.info "Environment initialized:"
     bashio::log.info "  - Home: $HOME"
-    bashio::log.info "  - Config: $XDG_CONFIG_HOME" 
+    bashio::log.info "  - Config: $XDG_CONFIG_HOME"
     bashio::log.info "  - Claude config: $ANTHROPIC_CONFIG_DIR"
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
 }
