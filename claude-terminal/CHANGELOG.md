@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.11
+
+### 🐛 Bug Fixes
+- **Fixed install method config**: Run `claude install` during build to set config to native
+
 ## 1.5.10
 
 ### 🐛 Bug Fixes
