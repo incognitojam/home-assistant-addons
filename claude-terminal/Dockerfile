@@ -39,7 +39,8 @@ RUN apk add --no-cache \
 ENV USE_BUILTIN_RIPGREP=0
 ENV PATH="/root/.local/bin:${PATH}"
 RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && /root/.local/bin/claude --version
+    && /root/.local/bin/claude --version \
+    && /root/.local/bin/claude install --yes 2>/dev/null || true
 
 # Install Home Assistant CLI
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \
