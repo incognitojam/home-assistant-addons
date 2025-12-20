@@ -100,14 +100,14 @@ migrate_legacy_auth_files() {
     fi
 }
 
-# Install required tools
+# Verify required tools are available (installed at build time)
 install_tools() {
-    bashio::log.info "Installing additional tools..."
-    if ! apk add --no-cache ttyd jq curl; then
-        bashio::log.error "Failed to install required tools"
+    bashio::log.info "Verifying tools..."
+    if ! command -v ttyd >/dev/null 2>&1; then
+        bashio::log.error "ttyd not found - image may be corrupted"
         exit 1
     fi
-    bashio::log.info "Tools installed successfully"
+    bashio::log.info "Tools verified successfully"
 }
 
 # Install Claude context documentation to /config

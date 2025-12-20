@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.12
+
+### 🐛 Bug Fixes
+- **Fixed ttyd installation**: Install ttyd at build time from Alpine edge repo (fixes libwebsockets compatibility in Alpine 3.19)
+
+### 🛠️ Improvements
+- **Faster startup**: ttyd and jq now installed at build time instead of runtime
+
 ## 1.5.11
 
 ### 🐛 Bug Fixes

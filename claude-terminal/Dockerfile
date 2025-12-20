@@ -23,16 +23,19 @@ RUN if [ -z "$BUILD_ARCH" ]; then \
     fi
 
 # Install packages in a single layer to minimize image size
+# ttyd from edge repo due to libwebsockets compatibility in Alpine 3.19
 RUN apk add --no-cache \
     nodejs \
     npm \
     bash \
     curl \
     git \
+    jq \
     libgcc \
     libstdc++ \
     nano \
-    ripgrep
+    ripgrep \
+    --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community ttyd
 
 # Install Claude Code using native installer
 # Alpine/musl requires USE_BUILTIN_RIPGREP=0 with system ripgrep installed
