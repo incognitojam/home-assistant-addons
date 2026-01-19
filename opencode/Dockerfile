@@ -1,16 +1,82 @@
 ARG BUILD_FROM
 ARG OPENCODE_REPO=https://github.com/sst/opencode
-ARG OPENCODE_REF=main
+ARG OPENCODE_REF=dev
 
-FROM golang:1.24-alpine AS builder
+FROM --platform=$TARGETPLATFORM oven/bun:1.3.5-alpine AS builder
 ARG OPENCODE_REPO
 ARG OPENCODE_REF
+ARG TARGETARCH
 
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache build-base ca-certificates git python3
 
-WORKDIR /build
-RUN git clone --depth 1 --branch "${OPENCODE_REF}" "${OPENCODE_REPO}" . \
-    && go build -o opencode ./cmd/opencode
+WORKDIR /src
+RUN git clone --depth 1 --branch "${OPENCODE_REF}" "${OPENCODE_REPO}" .
+RUN bun install --frozen-lockfile
+
+RUN cat <<'EOF' > /src/build-opencode.ts
+#!/usr/bin/env bun
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
+import solidPlugin from "./packages/opencode/node_modules/@opentui/solid/scripts/solid-plugin"
+import pkg from "./packages/opencode/package.json"
+import { Script } from "@opencode-ai/script"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const repoRoot = __dirname
+const opencodeDir = path.join(repoRoot, "packages", "opencode")
+
+const archMap = {
+  amd64: "x64",
+  arm64: "arm64",
+}
+const targetArch = process.env.TARGETARCH
+if (!targetArch || !(targetArch in archMap)) {
+  throw new Error(`Unsupported TARGETARCH: ${targetArch ?? "undefined"}`)
+}
+const arch = archMap[targetArch as keyof typeof archMap]
+const target = `linux-${arch}-musl`
+const name = `${pkg.name}-${target}`
+const outDir = "/out"
+
+process.chdir(opencodeDir)
+fs.mkdirSync(outDir, { recursive: true })
+
+const parserWorker = fs.realpathSync(
+  path.resolve(opencodeDir, "./node_modules/@opentui/core/parser.worker.js"),
+)
+const workerPath = "./src/cli/cmd/tui/worker.ts"
+const workerRelativePath = path.relative(opencodeDir, parserWorker).replaceAll("\\", "/")
+
+await Bun.build({
+  conditions: ["browser"],
+  tsconfig: "./tsconfig.json",
+  plugins: [solidPlugin],
+  sourcemap: "external",
+  compile: {
+    autoloadBunfig: false,
+    autoloadDotenv: false,
+    // @ts-ignore (bun types aren't up to date)
+    autoloadTsconfig: true,
+    autoloadPackageJson: true,
+    target: name.replace(pkg.name, "bun") as any,
+    outfile: path.join(outDir, "opencode"),
+    execArgv: [`--user-agent=opencode/${Script.version}`, "--use-system-ca", "--"],
+    windows: {},
+  },
+  entrypoints: ["./src/index.ts", parserWorker, workerPath],
+  define: {
+    OPENCODE_VERSION: `'${Script.version}'`,
+    OTUI_TREE_SITTER_WORKER_PATH: "/$bunfs/root/" + workerRelativePath,
+    OPENCODE_WORKER_PATH: workerPath,
+    OPENCODE_CHANNEL: `'${Script.channel}'`,
+    OPENCODE_LIBC: "'musl'",
+  },
+})
+EOF
+
+RUN TARGETARCH="${TARGETARCH}" bun /src/build-opencode.ts
 
 FROM ${BUILD_FROM}
 
@@ -43,7 +109,7 @@ RUN apk add --no-cache \
 ENV PATH="/root/.opencode/bin:${PATH}"
 
 RUN mkdir -p /root/.opencode/bin
-COPY --from=builder /build/opencode /root/.opencode/bin/opencode
+COPY --from=builder /out/opencode /root/.opencode/bin/opencode
 RUN chmod +x /root/.opencode/bin/opencode
 
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \
