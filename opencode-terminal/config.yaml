@@ -1,0 +1,48 @@
+---
+name: "OpenCode"
+description: "Web interface for OpenCode"
+version: "0.0.1"
+slug: "opencode_terminal"
+init: false
+
+arch:
+  - aarch64
+  - amd64
+
+url: "https://github.com/incognitojam/home-assistant-addons"
+
+ingress: true
+ingress_port: 4096
+panel_icon: mdi:code-braces
+panel_title: "OpenCode"
+panel_admin: true
+
+ports:
+  4096/tcp: 4096
+ports_description:
+  4096/tcp: "OpenCode web UI (not required for ingress)"
+
+options:
+  server_port: 4096
+  server_hostname: "0.0.0.0"
+  server_username: ""
+  server_password: ""
+
+schema:
+  server_port: port?
+  server_hostname: str?
+  server_username: str?
+  server_password: password?
+
+map:
+  - config:rw
+
+hassio_api: true
+hassio_role: manager
+homeassistant_api: true
+auth_api: true
+host_dbus: true
+
+startup: services
+
+webui: http://[HOST]:[PORT:4096]/
