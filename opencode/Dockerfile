@@ -1,4 +1,17 @@
 ARG BUILD_FROM
+ARG OPENCODE_REPO=https://github.com/sst/opencode
+ARG OPENCODE_REF=main
+
+FROM golang:1.24-alpine AS builder
+ARG OPENCODE_REPO
+ARG OPENCODE_REF
+
+RUN apk add --no-cache git ca-certificates
+
+WORKDIR /build
+RUN git clone --depth 1 --branch "${OPENCODE_REF}" "${OPENCODE_REPO}" . \
+    && go build -o opencode ./cmd/opencode
+
 FROM ${BUILD_FROM}
 
 ARG BUILD_ARCH
@@ -29,7 +42,9 @@ RUN apk add --no-cache \
 
 ENV PATH="/root/.opencode/bin:${PATH}"
 
-RUN curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
+RUN mkdir -p /root/.opencode/bin
+COPY --from=builder /build/opencode /root/.opencode/bin/opencode
+RUN chmod +x /root/.opencode/bin/opencode
 
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \
     echo "Downloading ha CLI for architecture: $HA_ARCH" && \
