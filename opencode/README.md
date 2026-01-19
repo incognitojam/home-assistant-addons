@@ -1,5 +1,7 @@
 # OpenCode for Home Assistant
 
+> **Note**: This is a community add-on and is not built by, maintained by, or affiliated with the OpenCode team.
+
 A web-based OpenCode interface that runs inside Home Assistant with access to your `/config` directory and HA APIs.
 
 ## Features
