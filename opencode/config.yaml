@@ -2,7 +2,7 @@
 name: "OpenCode"
 description: "Web interface for OpenCode"
 version: "0.0.1"
-slug: "opencode_terminal"
+slug: "opencode"
 init: false
 
 arch:
