@@ -76,3 +76,8 @@ curl -s -X POST "http://supervisor/core/api/services/light/turn_on" \
 - Create backups before major changes: `ha backups new`
 - Validate config: `ha core check`
 - Restart or reload as needed after edits
+
+## Session Persistence
+
+- OpenCode sessions run inside this container and are **lost** if the Home Assistant Supervisor or host is restarted.
+- Restarting the add-on itself will also end the current session.
