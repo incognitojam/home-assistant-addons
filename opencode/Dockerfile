@@ -39,6 +39,8 @@ RUN HA_ARCH=$(cat /tmp/ha_arch) && \
     && rm /tmp/ha_arch
 
 COPY run.sh /run.sh
-RUN chmod +x /run.sh
+COPY AGENTS.md /opt/AGENTS.md
+RUN chmod +x /run.sh \
+    && chmod 644 /opt/AGENTS.md
 
 CMD ["/run.sh"]

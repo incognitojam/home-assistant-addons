@@ -30,6 +30,33 @@ init_environment() {
     ln -sf /root/.opencode/bin/opencode "$data_home/.opencode/bin/opencode" 2>/dev/null || true
 }
 
+install_agent_context() {
+    local source_file="/opt/AGENTS.md"
+    local target_file="/config/AGENTS.md"
+
+    if [ -f "$source_file" ]; then
+        if [ ! -f "$target_file" ]; then
+            bashio::log.info "Installing AGENTS.md to /config..."
+            if cp "$source_file" "$target_file"; then
+                chmod 644 "$target_file"
+                bashio::log.info "AGENTS.md installed successfully"
+            else
+                bashio::log.warning "Failed to install AGENTS.md"
+            fi
+        else
+            if [ "$source_file" -nt "$target_file" ]; then
+                bashio::log.info "Updating AGENTS.md in /config..."
+                if cp "$source_file" "$target_file"; then
+                    chmod 644 "$target_file"
+                    bashio::log.info "AGENTS.md updated successfully"
+                else
+                    bashio::log.warning "Failed to update AGENTS.md"
+                fi
+            fi
+        fi
+    fi
+}
+
 start_web_ui() {
     local port
     local hostname
@@ -64,6 +91,7 @@ start_web_ui() {
 
 main() {
     init_environment
+    install_agent_context
     start_web_ui
 }
 
