@@ -1,7 +1,7 @@
 ---
 name: "OpenCode"
 description: "Web interface for OpenCode"
-version: "0.0.3"
+version: "0.0.4"
 slug: "opencode"
 init: false
 

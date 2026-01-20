@@ -11,7 +11,7 @@ RUN apk add --no-cache build-base ca-certificates git python3
 
 WORKDIR /src
 RUN git clone --depth 1 --branch "${OPENCODE_REF}" "${OPENCODE_REPO}" .
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --ignore-scripts
 
 RUN cat <<'EOF' > /src/build-opencode.ts
 #!/usr/bin/env bun
