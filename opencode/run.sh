@@ -70,6 +70,10 @@ start_web_ui() {
         username=$(bashio::config 'server_username')
         password=$(bashio::config 'server_password')
         base_path=$(bashio::config 'server_base_path')
+
+        if [ -z "$base_path" ] && bashio::addon.ingress; then
+            base_path=$(bashio::addon.ingress_entry)
+        fi
     else
         port="${OPENCODE_SERVER_PORT:-4096}"
         hostname="${OPENCODE_SERVER_HOSTNAME:-0.0.0.0}"

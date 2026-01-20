@@ -42,6 +42,7 @@ server_base_path: /api/hassio_ingress/your_ingress_token
 - OpenCode config/agents live in `/config/opencode` inside Home Assistant.
 - The add-on includes the Home Assistant CLI (`ha`).
 - If you leave `server_password` empty, the web UI is unsecured.
+- When ingress is enabled and `server_base_path` is empty, the add-on auto-detects the ingress entry path.
 
 ## License
 
