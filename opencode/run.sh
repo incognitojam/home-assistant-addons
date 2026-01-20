@@ -62,17 +62,20 @@ start_web_ui() {
     local hostname
     local username
     local password
+    local base_path
 
     if [ -n "${SUPERVISOR_TOKEN:-}" ]; then
         port=$(bashio::config 'server_port' '4096')
         hostname=$(bashio::config 'server_hostname' '0.0.0.0')
         username=$(bashio::config 'server_username')
         password=$(bashio::config 'server_password')
+        base_path=$(bashio::config 'server_base_path')
     else
         port="${OPENCODE_SERVER_PORT:-4096}"
         hostname="${OPENCODE_SERVER_HOSTNAME:-0.0.0.0}"
         username="${OPENCODE_SERVER_USERNAME:-}"
         password="${OPENCODE_SERVER_PASSWORD:-}"
+        base_path="${OPENCODE_SERVER_BASE_PATH:-}"
     fi
 
     if [ -n "$username" ]; then
@@ -85,8 +88,14 @@ start_web_ui() {
         bashio::log.warning "OPENCODE_SERVER_PASSWORD not set; web UI will be unsecured."
     fi
 
+    local args
+    args=(web --hostname "$hostname" --port "$port")
+    if [ -n "$base_path" ]; then
+        args+=(--base-path "$base_path")
+    fi
+
     bashio::log.info "Starting OpenCode web UI on ${hostname}:${port}..."
-    exec opencode web --hostname "$hostname" --port "$port"
+    exec opencode "${args[@]}"
 }
 
 main() {

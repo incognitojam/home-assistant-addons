@@ -25,6 +25,7 @@ Options in the add-on config:
 - `server_hostname` (default `0.0.0.0`)
 - `server_username` (optional)
 - `server_password` (optional, recommended)
+- `server_base_path` (optional)
 
 Example:
 
@@ -33,6 +34,7 @@ server_port: 4096
 server_hostname: 0.0.0.0
 server_username: opencode
 server_password: your-strong-password
+server_base_path: /api/hassio_ingress/your_ingress_token
 ```
 
 ## Notes
