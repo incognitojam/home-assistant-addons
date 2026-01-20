@@ -1,5 +1,5 @@
 ARG BUILD_FROM
-ARG OPENCODE_REPO=https://github.com/sst/opencode
+ARG OPENCODE_REPO=https://github.com/incognitojam/opencode
 ARG OPENCODE_REF=dev
 
 FROM --platform=$TARGETPLATFORM oven/bun:1.3.5-alpine AS builder

@@ -3,7 +3,7 @@ build_from:
   amd64: ghcr.io/home-assistant/amd64-base:3.19
 
 args:
-  OPENCODE_REPO: https://github.com/sst/opencode
+  OPENCODE_REPO: https://github.com/incognitojam/opencode
   OPENCODE_REF: dev
 
 labels:
