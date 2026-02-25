@@ -2,8 +2,8 @@
 
 ## 1.6.0
 
-### 🔄 Changes
-- **Updated Claude Code CLI**: Rebuilt add-on to include the latest Claude Code CLI version with newest features and improvements
+### 🐛 Bug Fixes
+- **Fixed auto-update not working**: Auto-update was silently failing, leaving users stuck on old Claude Code versions. Replaced broken `claude update` command with the official native installer (`claude.ai/install.sh`) which reliably fetches the latest version on each startup
 
 ## 1.5.12
 
