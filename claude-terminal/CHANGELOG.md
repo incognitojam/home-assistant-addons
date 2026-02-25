@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0
+
+### 🔄 Changes
+- **Updated Claude Code CLI**: Rebuilt add-on to include the latest Claude Code CLI version with newest features and improvements
+
 ## 1.5.12
 
 ### 🐛 Bug Fixes
