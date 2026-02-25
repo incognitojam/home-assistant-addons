@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+
+### 🐛 Bug Fixes
+- **Fixed auto-update reverting on restart**: Container restarts were overwriting the updated Claude binary with the older build-time version. The symlink at `$HOME/.local/bin/claude` is now only created as a fallback when no existing binary is present, preserving auto-updater installations across restarts.
+
 ## 1.6.0
 
 ### 🐛 Bug Fixes
