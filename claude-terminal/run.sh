@@ -178,7 +178,7 @@ get_claude_launch_command() {
     # Build update command if enabled (native installer uses 'claude update')
     local update_cmd=""
     if [ "$auto_update_claude" = "true" ]; then
-        update_cmd="echo 'Updating Claude Code...' && claude update --yes 2>/dev/null; clear && "
+        update_cmd="echo 'Updating Claude Code...' && curl -fsSL https://claude.ai/install.sh | bash; clear && "
     fi
 
     if [ "$auto_launch_claude" = "true" ]; then
