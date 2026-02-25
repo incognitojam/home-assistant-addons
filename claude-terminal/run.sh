@@ -38,9 +38,16 @@ init_environment() {
         echo 'export PATH="$HOME/.local/bin:/root/.local/bin:${PATH}"' >> /root/.bashrc
     fi
 
-    # Create symlink so Claude finds itself at $HOME/.local/bin
+    # Ensure Claude is available at $HOME/.local/bin
+    # Only create symlink to build-time binary as fallback — don't overwrite
+    # a version installed by the auto-updater (which persists in /data)
     mkdir -p "$data_home/.local/bin"
-    ln -sf /root/.local/bin/claude "$data_home/.local/bin/claude" 2>/dev/null || true
+    if [ ! -e "$data_home/.local/bin/claude" ] && [ ! -L "$data_home/.local/bin/claude" ]; then
+        ln -sf /root/.local/bin/claude "$data_home/.local/bin/claude" 2>/dev/null || true
+        bashio::log.info "Created symlink to build-time Claude binary"
+    else
+        bashio::log.info "Using existing Claude binary at $data_home/.local/bin/claude"
+    fi
 
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
