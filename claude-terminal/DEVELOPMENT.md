@@ -6,37 +6,60 @@ This guide covers local development and testing workflows for the Claude Code ad
 
 ### Prerequisites
 
-- **Podman** (or Docker) installed
+- **Docker** or **Podman** installed (commands below use `docker`; `podman` is a drop-in replacement)
 - **Git** repository cloned locally
 - **NixOS development environment** (optional, for `nix develop`)
 
+> **Tip:** Build with the base image that matches your machine's architecture so the
+> container runs natively (no slow emulation). Use `aarch64-base` on Apple Silicon /
+> ARM, `amd64-base` on Intel/AMD.
+
 ### Quick Start Testing
 
-The fastest way to test changes without publishing new versions:
+The fastest way to test changes — including the full web UI — without publishing a
+new version or installing into a real Home Assistant instance:
 
 ```bash
-# 1. Build test container
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+# 1. Build test container (use aarch64-base on Apple Silicon, amd64-base on Intel)
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.19 \
   -t local/claude-terminal:test ./claude-terminal
 
-# 2. Create test configuration
-mkdir -p /tmp/test-config/claude-config
-echo '{"auto_launch_claude": false}' > /tmp/test-config/options.json
-
-# 3. Run test container
-podman run -d --name test-claude-dev \
+# 2. Run it. Mount /data so the Claude install + auth persist across runs, just
+#    like the real add-on. Use the env-var overrides to choose a mode (see note).
+mkdir -p /tmp/cc-data /tmp/cc-config
+docker run -d --name test-claude-dev \
   -p 7681:7681 \
-  -v /tmp/test-config:/config \
+  -e AUTO_LAUNCH_CLAUDE=false \
+  -e AUTO_UPDATE_CLAUDE=true \
+  -v /tmp/cc-data:/data \
+  -v /tmp/cc-config:/config \
   local/claude-terminal:test
 
-# 4. Check startup logs
-podman logs test-claude-dev
+# 3. Check startup logs (confirm options resolve, no per-launch reinstall)
+docker logs -f test-claude-dev
 
-# 5. Test in browser: http://localhost:7681
+# 4. Test the web UI in a browser: http://localhost:7681
+#    ttyd serves the terminal here directly (ingress is only added by HA in prod).
 
-# 6. Clean up when done
-podman stop test-claude-dev && podman rm test-claude-dev
+# 5. Clean up when done
+docker stop test-claude-dev && docker rm test-claude-dev
 ```
+
+> **Setting options locally:** In a real add-on the user's options come from the
+> **Supervisor API** (`bashio::config` calls `http://supervisor/...`). A bare local
+> container has no Supervisor, so `bashio::config` can't read options there — this
+> is the historical "bashio::config doesn't work in local containers" gotcha.
+>
+> To work around it, `run.sh` accepts env-var overrides that take precedence over
+> `bashio::config`, so you can exercise each mode locally:
+>
+> | Add-on option        | Local override          | Values        |
+> | -------------------- | ----------------------- | ------------- |
+> | `auto_launch_claude` | `AUTO_LAUNCH_CLAUDE`    | `true`/`false`|
+> | `auto_update_claude` | `AUTO_UPDATE_CLAUDE`    | `true`/`false`|
+>
+> These overrides are only needed for local testing; in production the values come
+> from the add-on configuration as usual.
 
 ### Development Workflow
 
