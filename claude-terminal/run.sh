@@ -4,6 +4,35 @@
 set -e
 set -o pipefail
 
+# Read an add-on option with a robust fallback.
+#
+# In a real Home Assistant install, options come from the Supervisor API via
+# bashio::config. Two things make that brittle outside of production:
+#   1. Running the image directly (local testing) has no Supervisor, so
+#      bashio::config returns an empty string and silently drops the default.
+#   2. A transient Supervisor API failure would do the same in production.
+#
+# This helper lets an env-var override take precedence (handy for local testing,
+# e.g. `docker run -e AUTO_LAUNCH_CLAUDE=true ...`) and guarantees the documented
+# default is used when the option cannot be read at all.
+get_addon_option() {
+    local key="$1"
+    local default="$2"
+    local override="${3:-}"
+    local value
+
+    if [ -n "$override" ]; then
+        echo "$override"
+        return 0
+    fi
+
+    value=$(bashio::config "$key" "$default" 2>/dev/null) || true
+    if [ -z "$value" ] || [ "$value" = "null" ]; then
+        value="$default"
+    fi
+    echo "$value"
+}
+
 # Initialize environment for Claude Code CLI using /data (HA best practice)
 init_environment() {
     # Use /data exclusively - guaranteed writable by HA Supervisor
@@ -52,6 +81,21 @@ init_environment() {
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
+
+    # Configure Claude Code's built-in background auto-updater.
+    # The native install keeps itself current in the background while running and
+    # switches to the new version on the next launch, so there is no need to
+    # reinstall on every startup. Honour the user's auto_update_claude option by
+    # toggling DISABLE_AUTOUPDATER (the variable Claude's native updater respects).
+    local auto_update_claude
+    auto_update_claude=$(get_addon_option 'auto_update_claude' 'true' "${AUTO_UPDATE_CLAUDE:-}")
+    if [ "$auto_update_claude" = "true" ]; then
+        unset DISABLE_AUTOUPDATER
+        bashio::log.info "Claude auto-update: enabled (native background updater)"
+    else
+        export DISABLE_AUTOUPDATER=1
+        bashio::log.info "Claude auto-update: disabled (DISABLE_AUTOUPDATER=1)"
+    fi
 
     # Migrate any existing authentication files from legacy locations
     migrate_legacy_auth_files "$claude_config_dir"
@@ -176,29 +220,23 @@ setup_session_picker() {
 # Determine Claude launch command based on configuration
 get_claude_launch_command() {
     local auto_launch_claude
-    local auto_update_claude
+    auto_launch_claude=$(get_addon_option 'auto_launch_claude' 'true' "${AUTO_LAUNCH_CLAUDE:-}")
 
-    # Get configuration values
-    auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
-    auto_update_claude=$(bashio::config 'auto_update_claude' 'true')
-
-    # Build update command if enabled (native installer uses 'claude update')
-    local update_cmd=""
-    if [ "$auto_update_claude" = "true" ]; then
-        update_cmd="echo 'Updating Claude Code...' && curl -fsSL https://claude.ai/install.sh | bash; clear && "
-    fi
-
+    # Note: updates are handled by Claude's native background auto-updater
+    # (configured in init_environment), so we no longer reinstall on launch.
+    # Re-running https://claude.ai/install.sh unconditionally re-downloaded the
+    # full ~215MB binary on every terminal open, which made startup slow.
     if [ "$auto_launch_claude" = "true" ]; then
-        # Original behavior: auto-launch Claude directly (with optional update)
-        echo "clear && ${update_cmd}claude"
+        # Auto-launch Claude directly
+        echo "clear && claude"
     else
-        # New behavior: show interactive session picker
+        # Show interactive session picker
         if [ -f /usr/local/bin/claude-session-picker ]; then
-            echo "clear && ${update_cmd}/usr/local/bin/claude-session-picker"
+            echo "clear && /usr/local/bin/claude-session-picker"
         else
             # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
-            echo "clear && ${update_cmd}claude"
+            echo "clear && claude"
         fi
     fi
 }
@@ -220,7 +258,7 @@ start_web_terminal() {
     
     # Log the configuration being used
     local auto_launch_claude
-    auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
+    auto_launch_claude=$(get_addon_option 'auto_launch_claude' 'true' "${AUTO_LAUNCH_CLAUDE:-}")
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
     
     # Run ttyd with improved configuration

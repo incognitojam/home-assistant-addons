@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.2
+
+### 🛠️ Improvements
+- **Much faster terminal startup**: Stopped re-running the native installer (`claude.ai/install.sh`) on every terminal launch. That script always re-downloaded the full ~215MB Claude Code binary regardless of whether an update was actually available, adding a large download + reinstall to every single open.
+- **`auto_update_claude` now drives the native background updater**: Claude Code's built-in auto-updater already keeps the install current in the background and applies new versions on the next launch (downloads to persistent `/data`, so it survives restarts). When the option is disabled, the add-on now sets `DISABLE_AUTOUPDATER=1` instead of pinning the version via reinstall.
+
 ## 1.6.1
 
 ### 🐛 Bug Fixes
