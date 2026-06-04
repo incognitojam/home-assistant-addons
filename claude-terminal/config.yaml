@@ -1,7 +1,7 @@
 ---
 name: "Claude Code"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth"
-version: "1.6.2"
+version: "1.7.0"
 slug: "claude_terminal"
 init: false
 
@@ -35,9 +35,13 @@ options:
   auto_update_claude:
     name: "Auto-update Claude Code"
     description: "Let Claude Code keep itself updated in the background (native auto-updater)"
+  permission_mode:
+    name: "Default permission mode"
+    description: "Permission mode each Claude session starts in: auto (AI classifier approves/denies actions), acceptEdits, default, or plan. See the add-on Documentation tab for details. You can switch modes mid-session with Shift+Tab."
 schema:
   auto_launch_claude: bool?
   auto_update_claude: bool?
+  permission_mode: "list(default|acceptEdits|auto|plan)?"
 
 # Volume mappings for file access
 map:

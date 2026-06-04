@@ -107,6 +107,59 @@ init_environment() {
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
 }
 
+# Apply the configured default permission mode to Claude's user settings.
+#
+# Claude reads the per-session default from `permissions.defaultMode` in its
+# user settings.json (under CLAUDE_CONFIG_DIR, or ~/.claude when unset). Writing
+# it here means every launch path picks it up: auto-launch, the session picker,
+# and any `claude` the user runs manually. Users can still cycle modes during a
+# session with Shift+Tab — this only sets the starting default on each boot.
+configure_permission_mode() {
+    local mode
+    mode=$(get_addon_option 'permission_mode' 'auto' "${PERMISSION_MODE:-}")
+
+    local config_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+    local settings_file="$config_dir/settings.json"
+
+    bashio::log.info "Setting default permission mode: ${mode}"
+
+    # Setting the default mode is a convenience, not critical to the terminal
+    # working — so failures here only warn and continue (never abort startup).
+    if ! mkdir -p "$config_dir"; then
+        bashio::log.warning "Could not create ${config_dir}; leaving permission mode unset"
+        return 0
+    fi
+
+    # Start from existing settings when valid, otherwise a fresh object, so we
+    # never clobber other settings the user (or Claude) has written.
+    if [ ! -s "$settings_file" ] || ! jq empty "$settings_file" 2>/dev/null; then
+        echo '{}' > "$settings_file" 2>/dev/null || true
+    fi
+
+    # Merge permissions.defaultMode, preserving any other settings.
+    local tmp
+    if ! tmp="$(mktemp)"; then
+        bashio::log.warning "Could not create a temp file; leaving permission mode unchanged"
+        return 0
+    fi
+    if jq --arg mode "$mode" '.permissions.defaultMode = $mode' "$settings_file" > "$tmp" 2>/dev/null \
+        && mv "$tmp" "$settings_file" 2>/dev/null; then
+        chmod 644 "$settings_file" 2>/dev/null || true
+    else
+        rm -f "$tmp"
+        bashio::log.warning "Could not update ${settings_file}; leaving permission mode unchanged"
+    fi
+
+    # 'auto' mode is gated behind an opt-in for non-first-party providers (Bedrock,
+    # Vertex AI, Foundry) and is harmless to set for first-party Anthropic logins.
+    # If the plan/model doesn't support it, Claude falls back to prompting rather
+    # than failing to launch.
+    if [ "$mode" = "auto" ]; then
+        export CLAUDE_CODE_ENABLE_AUTO_MODE=1
+        bashio::log.info "Auto mode opt-in enabled (CLAUDE_CODE_ENABLE_AUTO_MODE=1)"
+    fi
+}
+
 # One-time migration of existing authentication files
 migrate_legacy_auth_files() {
     local target_dir="$1"
@@ -286,6 +339,7 @@ main() {
     run_health_check
 
     init_environment
+    configure_permission_mode
     install_tools
     install_claude_context
     setup_session_picker
