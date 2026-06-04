@@ -26,9 +26,21 @@ Follow these steps to install the add-on:
 
 ## Configuration
 
-No configuration is needed! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
+No configuration is needed to get started! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
 
 Your OAuth credentials are stored in the `/config/claude-config` directory and will persist across add-on updates and restarts, so you won't need to log in again.
+
+### Options
+
+A few optional settings are available under the add-on's **Configuration** tab:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `permission_mode` | `auto` | The permission mode each Claude session starts in. Sets Claude Code's `permissions.defaultMode` — one of `auto`, `acceptEdits`, `default`, or `plan`. See [Choose a permission mode](https://code.claude.com/docs/en/permission-modes) for what each does. Switch anytime mid-session with **Shift+Tab**. |
+| `auto_launch_claude` | `true` | Start Claude automatically when the terminal opens. Disable to get an interactive session picker (new / continue / resume / shell) instead. |
+| `auto_update_claude` | `true` | Let Claude Code keep itself updated in the background via its native auto-updater. |
+
+The default, `auto`, uses Claude Code's AI permission classifier so sessions run with fewer prompts; it's a [research preview](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode) and needs a recent model (Opus 4.6+ or Sonnet 4.6+). If it isn't available for your account, Claude falls back to prompting. Prefer to approve each action yourself? Set `permission_mode` to `default`.
 
 ## Usage
 

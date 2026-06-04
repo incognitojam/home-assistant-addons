@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0
+
+### ✨ New Features
+- **Configurable default permission mode**: New `permission_mode` option controls how Claude handles permission prompts at the start of every session. Defaults to **`auto`**, which lets an AI classifier approve or deny each action. Other choices are `acceptEdits` (auto-accept file edits), `default` (prompt before risky actions), and `plan` (read-only). It is applied via Claude's `permissions.defaultMode` setting so it covers all launch paths, and you can still cycle modes mid-session with **Shift+Tab**. Auto mode availability depends on your Anthropic plan/model; when unavailable, Claude falls back to prompting.
+
 ## 1.6.2
 
 ### 🛠️ Improvements
