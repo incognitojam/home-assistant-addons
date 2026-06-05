@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.2
+
+### 🛠️ Improvements
+- **New sidebar icon**: swapped out the old curly braces for something which felt closer to Claude Code! 🤖
+
 ## 1.7.1
 
 ### 🐛 Bug Fixes

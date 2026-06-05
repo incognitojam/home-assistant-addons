@@ -1,7 +1,7 @@
 ---
 name: "Claude Code"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth"
-version: "1.7.1"
+version: "1.7.2"
 slug: "claude_terminal"
 init: false
 
@@ -17,7 +17,7 @@ url: "https://github.com/incognitojam/home-assistant-addons"
 # Web interface configuration
 ingress: true
 ingress_port: 7681
-panel_icon: mdi:code-braces
+panel_icon: mdi:robot-excited-outline
 panel_title: "Claude Code"
 panel_admin: true
 
