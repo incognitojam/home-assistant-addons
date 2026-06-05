@@ -1,0 +1,20 @@
+---
+configuration:
+  auto_launch_claude:
+    name: Auto-launch Claude
+    description: >-
+      Auto-start Claude when the terminal opens. Disable to land on the session
+      picker instead.
+  auto_update_claude:
+    name: Auto-update Claude Code
+    description: >-
+      Let Claude Code keep itself updated in the background using its native
+      auto-updater. When disabled, the add-on stays on the version shipped with
+      the image.
+  permission_mode:
+    name: Default permission mode
+    description: >-
+      Permission mode each Claude session starts in: auto (an AI classifier
+      approves or denies each action), acceptEdits (auto-accept file edits),
+      default (prompt before risky actions), or plan (read-only). You can still
+      switch modes mid-session with Shift+Tab.
