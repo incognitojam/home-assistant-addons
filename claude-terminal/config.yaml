@@ -1,7 +1,7 @@
 ---
 name: "Claude Code"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth"
-version: "1.7.0"
+version: "1.7.1"
 slug: "claude_terminal"
 init: false
 
@@ -28,20 +28,16 @@ ports_description:
   7681/tcp: "Web terminal (not required for ingress)"
 
 # Add-on configuration options
+# Defaults live here (these are the values applied to new and upgrading
+# installs); the human-readable names/descriptions live in translations/en.yaml.
 options:
-  auto_launch_claude:
-    name: "Auto-launch Claude"
-    description: "Auto-start Claude on terminal open (disable for session picker)"
-  auto_update_claude:
-    name: "Auto-update Claude Code"
-    description: "Let Claude Code keep itself updated in the background (native auto-updater)"
-  permission_mode:
-    name: "Default permission mode"
-    description: "Permission mode each Claude session starts in: auto (AI classifier approves/denies actions), acceptEdits, default, or plan. See the add-on Documentation tab for details. You can switch modes mid-session with Shift+Tab."
+  auto_launch_claude: true
+  auto_update_claude: true
+  permission_mode: auto
 schema:
   auto_launch_claude: bool?
   auto_update_claude: bool?
-  permission_mode: "list(default|acceptEdits|auto|plan)?"
+  permission_mode: list(default|acceptEdits|auto|plan)?
 
 # Volume mappings for file access
 map:

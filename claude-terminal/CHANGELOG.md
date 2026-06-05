@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+### 🐛 Bug Fixes
+- **Fixed "configuration not valid" error when upgrading to 1.7.0**: Existing installs failed to start because the new `permission_mode` option had no valid default. Upgrading now applies the `auto` default automatically — no config reset needed.
+
 ## 1.7.0
 
 ### ✨ New Features
