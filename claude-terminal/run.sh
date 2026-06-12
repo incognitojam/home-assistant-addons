@@ -313,11 +313,20 @@ start_web_terminal() {
     local auto_launch_claude
     auto_launch_claude=$(get_addon_option 'auto_launch_claude' 'true' "${AUTO_LAUNCH_CLAUDE:-}")
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
+
+    local ttyd_index="/opt/ttyd-index.html"
+    local ttyd_index_args=()
+    if [ -f "$ttyd_index" ]; then
+        ttyd_index_args=(--index "$ttyd_index")
+    else
+        bashio::log.warning "Patched ttyd index not found; falling back to bundled terminal UI"
+    fi
     
     # Run ttyd with improved configuration
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \
+        "${ttyd_index_args[@]}" \
         --writable \
         bash -c "$launch_command"
 }
