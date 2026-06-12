@@ -2,7 +2,7 @@ FROM ghcr.io/home-assistant/base:3.22-2026.03.1
 
 ARG BUILD_FROM
 ARG BUILD_ARCH
-ARG BUILD_VERSION=0.1.1
+ARG BUILD_VERSION=0.1.2
 ARG CLI_VERSION=4.43.0
 ARG TARGETARCH
 ARG TARGETVARIANT
@@ -56,7 +56,9 @@ RUN set -eux; \
 WORKDIR /config
 
 COPY run.sh /run.sh
+COPY AGENTS.md /opt/AGENTS.md
 COPY codex-auth-launcher.sh /usr/local/bin/codex-auth-launcher
-RUN chmod a+x /run.sh /usr/local/bin/codex-auth-launcher
+RUN chmod a+x /run.sh /usr/local/bin/codex-auth-launcher \
+    && chmod 644 /opt/AGENTS.md
 
 CMD ["/run.sh"]

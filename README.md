@@ -23,6 +23,7 @@ Features:
 - Pre-installed Codex CLI
 - Pre-launch picker for device code or API key authentication
 - Direct write access to your Home Assistant config directory
+- Bundled `AGENTS.md` guidance for Home Assistant-aware Codex sessions
 - Persistent Codex state under the app `/data` volume
 - Home Assistant CLI (`ha`) included
 - Supports `amd64` and `aarch64`

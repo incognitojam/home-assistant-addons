@@ -67,6 +67,61 @@ cd /config 2>/dev/null || true
 EOF
 }
 
+install_codex_context() {
+    local source_file="/opt/AGENTS.md"
+    local target_file="/config/AGENTS.md"
+    local stamp_file="${CODEX_HOME:-/data/.codex}/AGENTS.md.sha256"
+    local source_hash=""
+    local target_hash=""
+    local previous_hash=""
+
+    if [ ! -f "${source_file}" ]; then
+        bashio::log.debug "No bundled AGENTS.md found, skipping installation"
+        return 0
+    fi
+
+    if ! source_hash="$(sha256sum "${source_file}" 2>/dev/null | cut -d ' ' -f1)" || [ -z "${source_hash}" ]; then
+        bashio::log.warning "Could not checksum bundled AGENTS.md, continuing without installing it"
+        return 0
+    fi
+
+    mkdir -p "$(dirname "${stamp_file}")" 2>/dev/null || true
+
+    if [ ! -f "${target_file}" ]; then
+        bashio::log.info "Installing AGENTS.md to /config for Codex context..."
+        if cp "${source_file}" "${target_file}"; then
+            chmod 644 "${target_file}" 2>/dev/null || true
+            printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
+            bashio::log.info "AGENTS.md installed successfully"
+        else
+            bashio::log.warning "Failed to install AGENTS.md, continuing anyway"
+        fi
+        return 0
+    fi
+
+    if target_hash="$(sha256sum "${target_file}" 2>/dev/null | cut -d ' ' -f1)" && [ "${target_hash}" = "${source_hash}" ]; then
+        printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
+        return 0
+    fi
+
+    if [ -f "${stamp_file}" ]; then
+        previous_hash="$(head -n 1 "${stamp_file}" 2>/dev/null || true)"
+    fi
+
+    if [ -n "${previous_hash}" ] && [ "${target_hash}" = "${previous_hash}" ]; then
+        bashio::log.info "Updating AGENTS.md in /config..."
+        if cp "${source_file}" "${target_file}"; then
+            chmod 644 "${target_file}" 2>/dev/null || true
+            printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
+            bashio::log.info "AGENTS.md updated successfully"
+        else
+            bashio::log.warning "Failed to update AGENTS.md, continuing anyway"
+        fi
+    else
+        bashio::log.info "Existing /config/AGENTS.md has local changes; leaving it unchanged"
+    fi
+}
+
 verify_tools() {
     local missing=false
     local tool
@@ -106,6 +161,7 @@ main() {
     bashio::log.info "Starting Codex for Home Assistant..."
 
     init_environment
+    install_codex_context
     verify_tools
     start_web_terminal
 }

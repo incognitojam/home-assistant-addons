@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+### Improvements
+- Add bundled Codex `AGENTS.md` context for the Home Assistant add-on environment.
+- Install `/config/AGENTS.md` on launch without overwriting local edits.
+
 ## 0.1.1
 
 ### Improvements

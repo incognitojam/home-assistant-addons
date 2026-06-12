@@ -25,6 +25,12 @@ The app starts in `/config` with write access to the Home Assistant configuratio
 
 The Home Assistant CLI is installed as `ha`. The app also has Supervisor API and Home Assistant Core API access so CLI commands can interact with the local Home Assistant instance.
 
+## Codex Instructions
+
+The container includes a bundled `AGENTS.md` with Home Assistant-specific context, important paths, available tools, and safe editing expectations. On launch, the app installs it to `/config/AGENTS.md` so Codex loads it as project guidance for the Home Assistant configuration directory.
+
+If `/config/AGENTS.md` already exists and has local edits, the app leaves it unchanged. Future bundled updates replace the file only when the existing file still matches a previously installed bundled copy.
+
 ## Terminal
 
 The web terminal is served by `ttyd` and is available through Home Assistant ingress. The direct host port is disabled by default because ingress is the normal authenticated entry point. For local development, you can explicitly map container port `7681/tcp` to a host port in the app network settings.
