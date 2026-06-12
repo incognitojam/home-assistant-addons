@@ -14,6 +14,21 @@ To add this repository to your Home Assistant instance:
 
 ## Add-ons
 
+### Codex for Home Assistant
+
+A web-based terminal interface with OpenAI Codex CLI pre-installed. This add-on starts Codex in your Home Assistant `/config` directory after an authentication check.
+
+Features:
+- Web terminal access through your Home Assistant UI
+- Pre-installed Codex CLI
+- Pre-launch picker for device code or API key authentication
+- Direct write access to your Home Assistant config directory
+- Persistent Codex state under the add-on `/data` volume
+- Home Assistant CLI (`ha`) included
+- Supports `amd64` and `aarch64`
+
+[Documentation](codex-terminal/DOCS.md)
+
 ### Claude Code
 
 A web-based terminal interface with Claude Code CLI pre-installed. This add-on provides a terminal environment directly in your Home Assistant dashboard, allowing you to use Claude's powerful AI capabilities for coding, automation, and configuration tasks.
