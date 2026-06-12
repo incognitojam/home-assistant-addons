@@ -83,16 +83,18 @@ claude-logout        # Clear credentials and re-authenticate
 ### Development
 For local development and testing:
 ```bash
-# Enter development environment
-nix develop
+# Build locally
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+  -t local/claude-terminal:test ./claude-terminal
 
-# Build and test locally
-build-addon
-run-addon
+# Run locally
+docker run -p 7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
 
 # Lint and validate
-lint-dockerfile
-test-endpoint
+hadolint ./claude-terminal/Dockerfile
+
+# Test the web endpoint
+curl -I http://localhost:7681
 ```
 
 ## Architecture
@@ -113,20 +115,27 @@ Version 1.0.2 includes important security improvements:
 
 ## Development Environment
 
-This add-on includes a comprehensive development setup using Nix:
+This add-on can be built and tested locally with Docker or Podman:
 
 ```bash
-# Available development commands
-build-addon      # Build the add-on container with Podman
-run-addon        # Run add-on locally on port 7681
-lint-dockerfile  # Lint Dockerfile with hadolint
-test-endpoint    # Test web endpoint availability
+# Build the add-on container
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+  -t local/claude-terminal:test ./claude-terminal
+
+# Run the add-on locally on port 7681
+docker run -p 7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
+
+# Lint the Dockerfile and test the web endpoint
+hadolint ./claude-terminal/Dockerfile
+
+# Test the web endpoint
+curl -I http://localhost:7681
 ```
 
 **Requirements for development:**
-- NixOS or Nix package manager
-- Podman (automatically provided in dev shell)
-- Optional: direnv for automatic environment activation
+- Docker or Podman
+- Git
+- Optional: hadolint for Dockerfile linting
 
 ## Documentation
 

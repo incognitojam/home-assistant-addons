@@ -8,7 +8,6 @@ This guide covers local development and testing workflows for the Claude Code ad
 
 - **Docker** or **Podman** installed (commands below use `docker`; `podman` is a drop-in replacement)
 - **Git** repository cloned locally
-- **NixOS development environment** (optional, for `nix develop`)
 
 > **Tip:** Build with the base image that matches your machine's architecture so the
 > container runs natively (no slow emulation). Use `aarch64-base` on Apple Silicon /
