@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.4
+
+### 📚 Documentation
+- **Removed unnecessary workaround for Claude Code Bash tool bug**: The in-container `CLAUDE.md` no longer documents a pipe workaround now that the underlying bug is fixed.
+
 ## 1.7.3
 
 ### 🛠️ Improvements
