@@ -9,27 +9,15 @@ This repository contains Home Assistant add-ons, specifically the **Claude Code*
 ## Development Environment
 
 ### Setup
-```bash
-# Enter the development shell (NixOS/Nix)
-nix develop
-
-# Or with direnv (if installed)
-direnv allow
-```
+Use Docker for local container testing.
 
 ### Core Development Commands
-- `build-addon` - Build the Claude Code add-on with Podman
-- `run-addon` - Run add-on locally on port 7681 with volume mapping
-- `lint-dockerfile` - Lint Dockerfile using hadolint
-- `test-endpoint` - Test web endpoint availability (curl localhost:7681)
-
-### Manual Commands (without aliases)
 ```bash
 # Build
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal ./claude-terminal
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal ./claude-terminal
 
 # Run locally
-podman run -p 7681:7681 -v $(pwd)/config:/config local/claude-terminal
+docker run -p 7681:7681 -v $(pwd)/config:/config local/claude-terminal
 
 # Lint
 hadolint ./claude-terminal/Dockerfile
@@ -75,7 +63,7 @@ For rapid development and debugging without pushing new versions:
 #### Quick Build & Test
 ```bash
 # Build test version
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal:test ./claude-terminal
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal:test ./claude-terminal
 
 # Create test config directory
 mkdir -p /tmp/test-config/claude-config
@@ -84,47 +72,47 @@ mkdir -p /tmp/test-config/claude-config
 echo '{"auto_launch_claude": false}' > /tmp/test-config/options.json
 
 # Run test container
-podman run -d --name test-claude-dev -p 7681:7681 -v /tmp/test-config:/config local/claude-terminal:test
+docker run -d --name test-claude-dev -p 7681:7681 -v /tmp/test-config:/config local/claude-terminal:test
 
 # Check logs
-podman logs test-claude-dev
+docker logs test-claude-dev
 
 # Test web interface at http://localhost:7681
 
 # Stop and cleanup
-podman stop test-claude-dev && podman rm test-claude-dev
+docker stop test-claude-dev && docker rm test-claude-dev
 ```
 
 #### Interactive Testing
 ```bash
 # Test session picker directly
-podman run --rm -it local/claude-terminal:test /opt/scripts/claude-session-picker.sh
+docker run --rm -it local/claude-terminal:test /opt/scripts/claude-session-picker.sh
 
 # Execute commands inside running container
-podman exec -it test-claude-dev /bin/bash
+docker exec -it test-claude-dev /bin/bash
 
 # Test script modifications without rebuilding
-podman cp ./claude-terminal/scripts/claude-session-picker.sh test-claude-dev:/opt/scripts/
-podman exec test-claude-dev chmod +x /opt/scripts/claude-session-picker.sh
+docker cp ./claude-terminal/scripts/claude-session-picker.sh test-claude-dev:/opt/scripts/
+docker exec test-claude-dev chmod +x /opt/scripts/claude-session-picker.sh
 ```
 
 #### Development Workflow
 1. **Make changes** to scripts or Dockerfile
-2. **Rebuild** with `podman build -t local/claude-terminal:test ./claude-terminal`
-3. **Stop/remove** old container: `podman stop test-claude-dev && podman rm test-claude-dev`
+2. **Rebuild** with `docker build -t local/claude-terminal:test ./claude-terminal`
+3. **Stop/remove** old container: `docker stop test-claude-dev && docker rm test-claude-dev`
 4. **Start new** container with updated image
 5. **Test** changes at http://localhost:7681
 6. **Repeat** until satisfied, then commit and push
 
 #### Debugging Tips
-- **Check container logs**: `podman logs -f test-claude-dev` (follow mode)
-- **Inspect running processes**: `podman exec test-claude-dev ps aux`
-- **Test individual scripts**: `podman exec test-claude-dev /opt/scripts/script-name.sh`
+- **Check container logs**: `docker logs -f test-claude-dev` (follow mode)
+- **Inspect running processes**: `docker exec test-claude-dev ps aux`
+- **Test individual scripts**: `docker exec test-claude-dev /opt/scripts/script-name.sh`
 - **Volume contents**: `ls -la /tmp/test-config/` to verify persistence
 
 ### Production Testing
-- **Local Testing**: Use `run-addon` to test on localhost:7681
-- **Container Health**: Check logs with `podman logs <container-id>`
+- **Local Testing**: Run the container locally with `docker run -p 7681:7681 -v $(pwd)/config:/config local/claude-terminal`
+- **Container Health**: Check logs with `docker logs <container-id>`
 - **Authentication**: Use `claude-auth debug` within terminal for credential troubleshooting
 
 ### File Conventions
