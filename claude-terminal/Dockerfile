@@ -63,7 +63,8 @@ COPY scripts/ /opt/scripts/
 COPY CLAUDE.md /opt/CLAUDE.md
 RUN chmod +x /run.sh \
     && chmod +x /opt/scripts/*.sh \
-    && chmod 644 /opt/CLAUDE.md
+    && chmod 644 /opt/CLAUDE.md \
+    && /opt/scripts/create-ttyd-index.sh
 
 # Use exec form for better signal handling
 CMD ["/run.sh"]

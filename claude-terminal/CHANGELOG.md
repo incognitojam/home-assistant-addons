@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.3
+
+### 🛠️ Improvements
+- **Mobile terminal input hints**: the web terminal now asks mobile browsers not to autocomplete, autocorrect, autocapitalize, or spellcheck the hidden xterm input. Some keyboards may still ignore these browser hints.
+
 ## 1.7.2
 
 ### 🛠️ Improvements
