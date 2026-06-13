@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Improvements
+- Add Perl and GNU sed to the Codex container image.
+- Document the additional shell tools in the bundled Codex `AGENTS.md` context.
+
 ## 0.1.2
 
 ### Improvements
