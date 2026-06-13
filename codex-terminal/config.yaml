@@ -1,0 +1,39 @@
+---
+name: "Codex for Home Assistant"
+description: "Terminal interface for OpenAI Codex CLI with Home Assistant tools"
+version: "0.1.2"
+slug: "codex_terminal"
+init: false
+
+arch:
+  - aarch64
+  - amd64
+
+url: "https://github.com/incognitojam/home-assistant-addons"
+
+ingress: true
+ingress_port: 7681
+panel_icon: mdi:code-braces
+panel_title: "Codex"
+panel_admin: true
+
+ports:
+  7681/tcp: null
+ports_description:
+  7681/tcp: "Optional direct web terminal port for local development (not required for ingress)"
+
+options: {}
+schema: {}
+
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+
+hassio_api: true
+hassio_role: manager
+homeassistant_api: true
+auth_api: true
+
+startup: services
+webui: http://[HOST]:[PORT:7681]/
