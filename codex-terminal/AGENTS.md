@@ -13,7 +13,7 @@ You are running inside the Codex for Home Assistant add-on container.
 ## Available Tools
 
 - `ha` is the Home Assistant CLI. Use `ha --help` to discover commands.
-- `jq`, `rg`, `git`, `curl`, `nano`, and standard Alpine Linux shell tools are available.
+- `jq`, `rg`, `git`, `curl`, `nano`, `perl`, GNU `sed`, and standard Alpine Linux shell tools are available.
 - Home Assistant Core API requests should use `Authorization: Bearer ${SUPERVISOR_TOKEN}`.
 
 ## Working Rules
