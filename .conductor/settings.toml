@@ -1,0 +1,14 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = '''
+if command -v dockerd >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
+  if ! docker info >/dev/null 2>&1; then
+    sudo sh -c 'setsid dockerd --host=unix:///var/run/docker.sock </dev/null >/tmp/dockerd.log 2>&1 &'
+
+    until docker info >/dev/null 2>&1; do
+      sleep 1
+    done
+  fi
+fi
+'''
