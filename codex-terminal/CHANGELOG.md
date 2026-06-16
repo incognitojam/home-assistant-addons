@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+### Maintenance
+- Pin the Codex standalone release to CLI 0.140.0 for reproducible add-on builds.
+- Document plugin state as part of the persistent Codex data under `/data/.codex`.
+
 ## 0.1.3
 
 ### Improvements

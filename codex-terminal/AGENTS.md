@@ -34,7 +34,7 @@ You are running inside the Codex for Home Assistant add-on container.
 - `/config/scenes.yaml` - scenes
 - `/config/secrets.yaml` - secret values
 - `/config/custom_components/` - custom integrations
-- `/data/.codex/` - Codex state, authentication, sessions, logs, and skills
+- `/data/.codex/` - Codex state, authentication, sessions, logs, plugins, and skills
 
 ## API Examples
 

@@ -15,7 +15,7 @@ The browser-based ChatGPT sign-in option is intentionally not shown because it d
 
 ## Persistence
 
-Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, skills, and standalone package metadata. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
+Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, skills, and standalone package metadata. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
 
 The shell home directory and XDG directories are also stored under `/data` so command history and CLI state survive restarts.
 
