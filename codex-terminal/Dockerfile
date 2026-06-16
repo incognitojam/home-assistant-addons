@@ -2,8 +2,9 @@ FROM ghcr.io/home-assistant/base:3.22-2026.03.1
 
 ARG BUILD_FROM
 ARG BUILD_ARCH
-ARG BUILD_VERSION=0.1.3
+ARG BUILD_VERSION=0.1.4
 ARG CLI_VERSION=4.43.0
+ARG CODEX_RELEASE=0.140.0
 ARG TARGETARCH
 ARG TARGETVARIANT
 
@@ -33,7 +34,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh \
+RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_RELEASE="${CODEX_RELEASE}" CODEX_NON_INTERACTIVE=1 sh \
     && CODEX_BIN="$(command -v codex)" \
     && ln -sf "${CODEX_BIN}" /usr/local/bin/codex \
     && codex --version
