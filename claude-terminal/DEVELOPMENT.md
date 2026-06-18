@@ -295,9 +295,9 @@ podman run -d --name test-ha-claude -p 7681:7681 \
 
 ```bash
 # Test different base images
+podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
+  -t local/claude-terminal:amd64 ./claude-terminal
+
 podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.22 \
   -t local/claude-terminal:arm64 ./claude-terminal
-
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/armv7-base:3.22 \
-  -t local/claude-terminal:armv7 ./claude-terminal
 ```
