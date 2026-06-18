@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.5
+
+### 🐛 Bug Fixes
+- **Fixed Claude Code startup on current native releases**: Updated the Home Assistant base image from Alpine 3.19 to 3.22 so Claude Code's musl binary can resolve `statx` after install or auto-update.
+
 ## 1.7.4
 
 ### 📚 Documentation

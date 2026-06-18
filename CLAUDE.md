@@ -14,7 +14,7 @@ Use Docker for local container testing.
 ### Core Development Commands
 ```bash
 # Build
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal ./claude-terminal
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 -t local/claude-terminal ./claude-terminal
 
 # Run locally
 docker run -p 7681:7681 -v $(pwd)/config:/config local/claude-terminal
@@ -63,7 +63,7 @@ For rapid development and debugging without pushing new versions:
 #### Quick Build & Test
 ```bash
 # Build test version
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t local/claude-terminal:test ./claude-terminal
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 -t local/claude-terminal:test ./claude-terminal
 
 # Create test config directory
 mkdir -p /tmp/test-config/claude-config

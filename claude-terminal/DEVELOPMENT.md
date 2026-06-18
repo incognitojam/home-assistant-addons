@@ -20,7 +20,7 @@ new version or installing into a real Home Assistant instance:
 
 ```bash
 # 1. Build test container (use aarch64-base on Apple Silicon, amd64-base on Intel)
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.19 \
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
 # 2. Run it. Mount /data so the Claude install + auth persist across runs, just
@@ -69,7 +69,7 @@ docker stop test-claude-dev && docker rm test-claude-dev
 vim claude-terminal/scripts/claude-session-picker.sh
 
 # Rebuild image
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
 # Stop old container
@@ -227,7 +227,7 @@ ls -laZ /tmp/test-config/
 #### Build Cache Issues
 ```bash
 # Force rebuild without cache
-podman build --no-cache --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+podman build --no-cache --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
 # Clean up unused images
@@ -295,9 +295,9 @@ podman run -d --name test-ha-claude -p 7681:7681 \
 
 ```bash
 # Test different base images
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.19 \
+podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.22 \
   -t local/claude-terminal:arm64 ./claude-terminal
 
-podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/armv7-base:3.19 \
+podman build --build-arg BUILD_FROM=ghcr.io/home-assistant/armv7-base:3.22 \
   -t local/claude-terminal:armv7 ./claude-terminal
 ```

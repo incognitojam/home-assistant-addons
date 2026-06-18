@@ -84,7 +84,7 @@ claude-logout        # Clear credentials and re-authenticate
 For local development and testing:
 ```bash
 # Build locally
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
 # Run locally
@@ -99,7 +99,7 @@ curl -I http://localhost:7681
 
 ## Architecture
 
-- **Base Image**: Home Assistant Alpine Linux base (3.19)
+- **Base Image**: Home Assistant Alpine Linux base (3.22)
 - **Container Runtime**: Compatible with Docker/Podman
 - **Web Terminal**: ttyd for browser-based access
 - **Process Management**: s6-overlay for reliable service startup
@@ -119,7 +119,7 @@ This add-on can be built and tested locally with Docker or Podman:
 
 ```bash
 # Build the add-on container
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 \
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
 # Run the add-on locally on port 7681

@@ -47,7 +47,7 @@ jobs:
           platforms: ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }}
           push: false
           build-args: |
-            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:3.19
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:3.22
             BUILD_ARCH=${{ matrix.arch }}
             BUILD_VERSION=${{ steps.addon.outputs.version }}
           tags: local/${{ matrix.addon }}:${{ matrix.arch }}
