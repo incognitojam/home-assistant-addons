@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.6
+
+### 🐛 Bug Fixes
+- **Removed unsupported armv7 image**: Claude Code's native installer now reports `Unsupported architecture: armv7l`, so the add-on only advertises and builds the supported `amd64` and `aarch64` images.
+
 ## 1.7.5
 
 ### 🐛 Bug Fixes

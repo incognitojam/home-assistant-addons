@@ -4,22 +4,23 @@ FROM ${BUILD_FROM}
 # Build arguments for Home Assistant CLI
 ARG BUILD_ARCH
 ARG TARGETARCH
+ARG TARGETVARIANT
 ARG CLI_VERSION=4.43.0
 
 # Map Docker's TARGETARCH to Home Assistant's architecture naming
-# Docker TARGETARCH values: amd64, arm64, arm/v7, arm/v6
-# Home Assistant naming: amd64, aarch64, armv7, armhf
+# Claude Code native builds currently support linux/amd64 and linux/arm64 only.
 RUN if [ -z "$BUILD_ARCH" ]; then \
         case "$TARGETARCH" in \
             amd64) export HA_ARCH=amd64 ;; \
             arm64) export HA_ARCH=aarch64 ;; \
-            arm/v7) export HA_ARCH=armv7 ;; \
-            arm*) export HA_ARCH=armhf ;; \
-            *) echo "Unknown architecture: $TARGETARCH" && exit 1 ;; \
+            *) echo "Unsupported architecture: ${TARGETARCH}${TARGETVARIANT:+/$TARGETVARIANT}" && exit 1 ;; \
         esac; \
         echo "$HA_ARCH" > /tmp/ha_arch; \
     else \
-        echo "$BUILD_ARCH" > /tmp/ha_arch; \
+        case "$BUILD_ARCH" in \
+            amd64|aarch64) echo "$BUILD_ARCH" > /tmp/ha_arch ;; \
+            *) echo "Unsupported architecture: $BUILD_ARCH" && exit 1 ;; \
+        esac; \
     fi
 
 # Install packages in a single layer to minimize image size
@@ -44,8 +45,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV USE_BUILTIN_RIPGREP=0
 ENV PATH="/root/.local/bin:${PATH}"
 RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && /root/.local/bin/claude --version \
-    && /root/.local/bin/claude install --yes 2>/dev/null || true
+    && /root/.local/bin/claude --version
 
 # Install Home Assistant CLI
 RUN HA_ARCH=$(cat /tmp/ha_arch) && \

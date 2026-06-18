@@ -1,7 +1,7 @@
 ---
 name: "Claude Code"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth"
-version: "1.7.5"
+version: "1.7.6"
 slug: "claude_terminal"
 init: false
 
@@ -9,7 +9,6 @@ init: false
 arch:
   - aarch64
   - amd64
-  - armv7
 
 # External resources
 url: "https://github.com/incognitojam/home-assistant-addons"

@@ -15,7 +15,7 @@ You are running inside the **Claude Code** add-on for Home Assistant. This is a 
 ### System Information
 - **OS**: Alpine Linux (Home Assistant base image)
 - **Shell**: bash with bashio library
-- **Architecture**: Multi-arch support (amd64, aarch64, armv7)
+- **Architecture**: Multi-arch support (amd64, aarch64)
 - **Container Runtime**: Docker/Podman managed by Home Assistant Supervisor
 
 ### Environment Variables

@@ -31,7 +31,7 @@ curl -X GET http://localhost:7681/
 ### Add-on Structure (claude-terminal/)
 - **config.yaml** - Home Assistant add-on configuration (multi-arch, ingress, ports)
 - **Dockerfile** - Alpine-based container with Node.js and Claude Code CLI
-- **build.yaml** - Multi-architecture build configuration (amd64, aarch64, armv7)
+- **build.yaml** - Multi-architecture build configuration (amd64, aarch64)
 - **run.sh** - Main startup script with credential management and ttyd terminal
 - **scripts/** - Modular credential management scripts
 
@@ -39,7 +39,7 @@ curl -X GET http://localhost:7681/
 1. **Web Terminal**: Uses ttyd to provide browser-based terminal access
 2. **Credential Management**: Persistent authentication storage in `/config/claude-config/`
 3. **Service Integration**: Home Assistant ingress support with panel icon
-4. **Multi-Architecture**: Supports amd64, aarch64, armv7 platforms
+4. **Multi-Architecture**: Supports amd64 and aarch64 platforms
 
 ### Credential System
 The add-on implements a sophisticated credential management system:
