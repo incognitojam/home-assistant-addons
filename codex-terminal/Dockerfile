@@ -13,6 +13,7 @@ LABEL \
   io.hass.type="app" \
   io.hass.arch="amd64|aarch64"
 
+# hadolint ignore=DL3018
 RUN apk add --no-cache \
     bash \
     bubblewrap \
@@ -44,7 +45,7 @@ RUN set -eux; \
     if [[ -z "${ha_arch}" ]]; then \
       case "${TARGETARCH}${TARGETVARIANT}" in \
         amd64) ha_arch="amd64" ;; \
-        arm64*|arm64v8) ha_arch="aarch64" ;; \
+        arm64*|aarch64) ha_arch="aarch64" ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}${TARGETVARIANT}" >&2; exit 1 ;; \
       esac; \
     fi; \
