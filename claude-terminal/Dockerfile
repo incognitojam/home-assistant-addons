@@ -23,7 +23,6 @@ RUN if [ -z "$BUILD_ARCH" ]; then \
     fi
 
 # Install packages in a single layer to minimize image size
-# ttyd from edge repo due to libwebsockets compatibility in Alpine 3.19
 # hadolint ignore=DL3018
 RUN apk add --no-cache \
     nodejs \
@@ -36,7 +35,7 @@ RUN apk add --no-cache \
     libstdc++ \
     nano \
     ripgrep \
-    --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community ttyd
+    ttyd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
