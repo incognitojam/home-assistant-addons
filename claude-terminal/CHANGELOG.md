@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.7
+
+### ✨ New Features
+- **Python 3 in the terminal**: `python3` is now installed in the image, so Claude can write and run Python scripts (for example to talk to the Home Assistant API). This is the Python standard library only — `pip`/virtualenv package installs aren't set up yet.
+
 ## 1.7.6
 
 ### 🐛 Bug Fixes

@@ -35,6 +35,7 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++ \
     nano \
+    python3 \
     ripgrep \
     ttyd
 

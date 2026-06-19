@@ -92,6 +92,7 @@ curl          # HTTP requests
 jq            # JSON processing
 nano          # Text editor
 bash          # Shell
+python3       # Python 3 (standard library only; pip/venv not set up)
 ps            # Process listing
 grep          # Pattern searching
 find          # File searching
