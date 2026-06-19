@@ -37,6 +37,7 @@ RUN apk add --no-cache \
     nano \
     python3 \
     ripgrep \
+    sqlite \
     ttyd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

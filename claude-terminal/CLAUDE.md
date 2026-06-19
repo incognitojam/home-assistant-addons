@@ -93,6 +93,7 @@ jq            # JSON processing
 nano          # Text editor
 bash          # Shell
 python3       # Python 3 (standard library only; pip/venv not set up)
+sqlite3       # SQLite CLI — query the HA recorder DB at /config/home-assistant_v2.db (read-only; HA holds it open)
 ps            # Process listing
 grep          # Pattern searching
 find          # File searching
