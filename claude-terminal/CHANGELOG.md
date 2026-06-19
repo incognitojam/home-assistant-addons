@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.7
+
+### ✨ New Features
+- **Python 3 in the terminal**: `python3` is now installed in the image, so Claude can write and run Python scripts (for example to talk to the Home Assistant API). This is the Python standard library only — `pip`/virtualenv package installs aren't set up yet.
+- **`sqlite3` CLI in the terminal**: the `sqlite3` command is now installed, so Claude can query the Home Assistant recorder database at `/config/home-assistant_v2.db` directly (history, statistics, etc.).
+
 ## 1.7.6
 
 ### 🐛 Bug Fixes

@@ -35,7 +35,9 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++ \
     nano \
+    python3 \
     ripgrep \
+    sqlite \
     ttyd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
