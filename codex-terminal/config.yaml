@@ -1,7 +1,7 @@
 ---
 name: "Codex for Home Assistant"
 description: "Terminal interface for OpenAI Codex CLI with Home Assistant tools"
-version: "0.1.7"
+version: "0.1.8"
 slug: "codex_terminal"
 init: false
 
