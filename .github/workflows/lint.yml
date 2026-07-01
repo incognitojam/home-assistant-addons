@@ -22,7 +22,6 @@ jobs:
         dockerfile:
           - claude-terminal/Dockerfile
           - codex-terminal/Dockerfile
-          - tailscale/Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v4
