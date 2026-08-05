@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.15
+
+### Maintenance
+- Update the Home Assistant base image from Alpine 3.22 release 2026.03.1 to Alpine 3.24 release 2026.06.1.
+
 ## 0.1.14
 
 ### Maintenance
