@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.14
+
+### Maintenance
+- Update Home Assistant CLI from 4.43.0 to 5.2.0.
+
 ## 0.1.13
 
 ### Maintenance

@@ -5,7 +5,7 @@ FROM ${BUILD_FROM}
 ARG BUILD_ARCH
 ARG TARGETARCH
 ARG TARGETVARIANT
-ARG CLI_VERSION=4.43.0
+ARG CLI_VERSION=5.2.0
 
 # Map Docker's TARGETARCH to Home Assistant's architecture naming
 # Claude Code native builds currently support linux/amd64 and linux/arm64 only.

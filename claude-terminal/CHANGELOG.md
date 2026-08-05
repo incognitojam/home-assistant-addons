@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.8
+
+### 🔄 Dependencies
+- **Updated Home Assistant CLI**: Bumped from 4.43.0 to 5.2.0.
+
 ## 1.7.7
 
 ### ✨ New Features
