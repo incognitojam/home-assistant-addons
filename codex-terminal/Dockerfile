@@ -42,7 +42,7 @@ RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_RELEASE="${CODEX_REL
 
 RUN set -eux; \
     ha_arch="${BUILD_ARCH:-}"; \
-    if [[ -z "${ha_arch}" ]]; then \
+    if [ -z "${ha_arch}" ]; then \
       case "${TARGETARCH}${TARGETVARIANT}" in \
         amd64) ha_arch="amd64" ;; \
         arm64*|aarch64) ha_arch="aarch64" ;; \

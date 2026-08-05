@@ -24,12 +24,12 @@ jobs:
           - codex-terminal/Dockerfile
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Run hadolint
         run: |
           docker run --rm \
             --volume "${PWD}:/repo:ro" \
             --workdir /repo \
-            ghcr.io/hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e \
+            ghcr.io/hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d \
             hadolint "${{ matrix.dockerfile }}"
