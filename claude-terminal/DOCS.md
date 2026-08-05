@@ -28,7 +28,7 @@ Follow these steps to install the add-on:
 
 No configuration is needed to get started! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
 
-Your OAuth credentials are stored in the `/config/claude-config` directory and will persist across add-on updates and restarts, so you won't need to log in again.
+Your OAuth credentials are stored in the `/data/.config/claude` directory and will persist across add-on updates and restarts, so you won't need to log in again.
 
 ### Options
 
