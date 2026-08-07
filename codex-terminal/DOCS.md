@@ -15,9 +15,17 @@ The browser-based ChatGPT sign-in option is intentionally not shown because it d
 
 ## Persistence
 
-Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, skills, and standalone package metadata. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
+Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, and skills. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
 
 The shell home directory and XDG directories are also stored under `/data` so command history and CLI state survive restarts.
+
+The app includes a pinned Codex version as a fallback. Opt-in npm updates are installed under `/data/npm`, take precedence, and survive app image upgrades.
+
+## Codex Updates
+
+Updates are opt-in. In the Codex terminal, run `!codex update`, approve `/data/npm` access if prompted, then exit and reopen Codex. From a regular container shell, run `codex update`. See the [official Codex command reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
+
+If a persistent version cannot run, the app uses the bundled version for that session. Remove the persistent version with `!/usr/local/bin/reset-codex-version`, then exit and reopen Codex.
 
 ## Home Assistant Access
 
@@ -42,7 +50,7 @@ This app supports:
 - `amd64`
 - `aarch64`
 
-Other architectures are not included because the Codex standalone Linux packages target x64 and arm64.
+Other architectures are not included because the Codex npm package supports Linux x64 and arm64 binaries.
 
 ## Security Notes
 

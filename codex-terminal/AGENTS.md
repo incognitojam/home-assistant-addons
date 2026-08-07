@@ -13,7 +13,8 @@ You are running inside the Codex for Home Assistant add-on container.
 ## Available Tools
 
 - `ha` is the Home Assistant CLI. Use `ha --help` to discover commands.
-- `jq`, `rg`, `git`, `curl`, `nano`, `perl`, GNU `sed`, and standard Alpine Linux shell tools are available.
+- `jq`, `rg`, `git`, `curl`, `nano`, `node`, `npm`, `perl`, GNU `sed`, and standard Alpine Linux shell tools are available.
+- Global npm packages are installed under the persistent `/data/npm` prefix.
 - Home Assistant Core API requests should use `Authorization: Bearer ${SUPERVISOR_TOKEN}`.
 
 ## Working Rules
@@ -35,6 +36,7 @@ You are running inside the Codex for Home Assistant add-on container.
 - `/config/secrets.yaml` - secret values
 - `/config/custom_components/` - custom integrations
 - `/data/.codex/` - Codex state, authentication, sessions, logs, plugins, and skills
+- `/data/npm/` - persistent global npm packages, including opt-in Codex updates
 
 ## API Examples
 

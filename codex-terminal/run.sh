@@ -12,6 +12,7 @@ init_environment() {
     local xdg_cache_home="/data/.cache"
     local xdg_state_home="/data/.local/state"
     local xdg_data_home="/data/.local/share"
+    local npm_prefix="/data/npm"
 
     bashio::log.info "Initializing Codex environment in /data..."
 
@@ -22,13 +23,21 @@ init_environment() {
         "${xdg_cache_home}" \
         "${xdg_state_home}" \
         "${xdg_data_home}" \
+        "${npm_prefix}/bin" \
         "${data_home}/.local/bin"; then
         bashio::log.error "Failed to create persistent directories in /data"
         exit 1
     fi
 
     chmod 700 "${codex_home}"
-    chmod 755 "${data_home}" "${xdg_config_home}" "${xdg_cache_home}" "${xdg_state_home}" "${xdg_data_home}"
+    chmod 755 \
+        "${data_home}" \
+        "${xdg_config_home}" \
+        "${xdg_cache_home}" \
+        "${xdg_state_home}" \
+        "${xdg_data_home}" \
+        "${npm_prefix}" \
+        "${npm_prefix}/bin"
 
     export HOME="${data_home}"
     export CODEX_HOME="${codex_home}"
@@ -37,18 +46,29 @@ init_environment() {
     export XDG_CACHE_HOME="${xdg_cache_home}"
     export XDG_STATE_HOME="${xdg_state_home}"
     export XDG_DATA_HOME="${xdg_data_home}"
-    export PATH="${HOME}/.local/bin:/usr/local/bin:${PATH}"
+    export NPM_CONFIG_PREFIX="${npm_prefix}"
 
     write_shell_profile
 
     bashio::log.info "Codex state: ${CODEX_HOME}"
+    bashio::log.info "Persistent npm prefix: ${NPM_CONFIG_PREFIX}"
     bashio::log.info "Working directory: /config"
 }
 
 write_shell_profile() {
     local profile="${HOME}/.bashrc"
 
+    if [ -f "${profile}" ] && grep -q 'NPM_CONFIG_PREFIX="/data/npm"' "${profile}"; then
+        return 0
+    fi
+
     if [ -f "${profile}" ] && grep -q "Codex for Home Assistant" "${profile}"; then
+        cat >> "${profile}" <<'EOF'
+
+# Codex persistent npm prefix
+export NPM_CONFIG_PREFIX="/data/npm"
+export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+EOF
         return 0
     fi
 
@@ -62,7 +82,8 @@ export XDG_CONFIG_HOME="/data/.config"
 export XDG_CACHE_HOME="/data/.cache"
 export XDG_STATE_HOME="/data/.local/state"
 export XDG_DATA_HOME="/data/.local/share"
-export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+export NPM_CONFIG_PREFIX="/data/npm"
+export PATH="$NPM_CONFIG_PREFIX/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
 cd /config 2>/dev/null || true
 EOF
 }
@@ -126,7 +147,7 @@ verify_tools() {
     local missing=false
     local tool
 
-    for tool in codex codex-auth-launcher ttyd ha git jq rg; do
+    for tool in codex-auth-launcher ttyd ha git jq node npm reset-codex-version rg; do
         if ! command -v "${tool}" >/dev/null 2>&1; then
             bashio::log.error "Required tool not found: ${tool}"
             missing=true
@@ -137,7 +158,8 @@ verify_tools() {
         exit 1
     fi
 
-    bashio::log.info "Codex version: $(codex --version 2>/dev/null || echo unknown)"
+    select_codex
+
     if ha help >/dev/null 2>&1; then
         bashio::log.info "Home Assistant CLI: available"
     else
@@ -145,16 +167,48 @@ verify_tools() {
     fi
 }
 
+select_codex() {
+    local bundled_codex="/usr/local/bin/codex"
+    local persistent_codex="${NPM_CONFIG_PREFIX}/bin/codex"
+    local selected_codex=""
+    local selected_version=""
+
+    if [ -e "${persistent_codex}" ] || [ -L "${persistent_codex}" ]; then
+        if [ -x "${persistent_codex}" ] \
+            && selected_version="$("${persistent_codex}" --version 2>/dev/null)" \
+            && [ -n "${selected_version}" ]; then
+            selected_codex="${persistent_codex}"
+        else
+            bashio::log.warning "Persistent Codex failed its startup check; using the bundled fallback"
+            bashio::log.warning "Run !/usr/local/bin/reset-codex-version from Codex to remove the broken override"
+        fi
+    fi
+
+    if [ -z "${selected_codex}" ]; then
+        if [ ! -x "${bundled_codex}" ] \
+            || ! selected_version="$("${bundled_codex}" --version 2>/dev/null)" \
+            || [ -z "${selected_version}" ]; then
+            bashio::log.error "Bundled Codex failed its startup check"
+            exit 1
+        fi
+        selected_codex="${bundled_codex}"
+    fi
+
+    export CODEX_EXECUTABLE="${selected_codex}"
+    bashio::log.info "Codex command: ${CODEX_EXECUTABLE}"
+    bashio::log.info "Codex version: ${selected_version}"
+}
+
 start_web_terminal() {
     bashio::log.info "Starting Codex terminal on port ${PORT}..."
 
     cd /config
 
-    exec ttyd \
+    exec /usr/bin/ttyd \
         --port "${PORT}" \
         --interface 0.0.0.0 \
         --writable \
-        bash -lc "cd /config && exec codex-auth-launcher"
+        /bin/bash -lc "cd /config && exec /usr/local/bin/codex-auth-launcher"
 }
 
 main() {
