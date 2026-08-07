@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.16
+
+### Maintenance
+- Update the pinned Codex standalone release to CLI 0.147.0.
+
 ## 0.1.15
 
 ### Maintenance
