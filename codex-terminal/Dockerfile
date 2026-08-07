@@ -36,10 +36,10 @@ RUN apk add --no-cache \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN npm install --global --prefix /usr/local --no-audit --no-fund "@openai/codex@${CODEX_RELEASE}" \
-    && codex --version
+    && codex --version \
+    && npm cache clean --force
 
-ENV NPM_CONFIG_PREFIX="/data/npm" \
-    PATH="/data/npm/bin:${PATH}"
+ENV NPM_CONFIG_PREFIX="/data/npm"
 
 RUN set -eux; \
     ha_arch="${BUILD_ARCH:-}"; \

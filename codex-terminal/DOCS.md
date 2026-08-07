@@ -19,7 +19,7 @@ Codex state is stored in `/data/.codex`, including authentication, configuration
 
 The shell home directory and XDG directories are also stored under `/data` so command history and CLI state survive restarts.
 
-The app includes a pinned, image-owned Codex version as a reliable fallback. Opt-in npm updates and their package metadata are installed under `/data/npm`, so they take precedence over the bundled version and survive app image upgrades.
+The app includes a pinned, image-owned Codex version as a reliable fallback. Opt-in npm updates and their package metadata are installed under `/data/npm`, so they take precedence over the bundled version and survive app image upgrades. The app validates a persistent Codex executable at startup and uses the bundled version for that session if the persistent version cannot run.
 
 ## Codex Updates
 
@@ -36,10 +36,10 @@ Approve access to `/data/npm` if prompted. After the update succeeds, exit and r
 To remove the persistent override and return to the version bundled with the current app image, run:
 
 ```text
-!reset-codex-version
+!/usr/local/bin/reset-codex-version
 ```
 
-Then exit and reopen Codex. Node.js and npm are included in the app and use `/data/npm` as the global npm prefix. Other npm-installed CLI tools in the app can use the same persistent location without mixing executable packages into Codex state. The native updater is documented in the [official Codex developer commands reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
+Use the explicit path so the image-owned recovery command cannot be shadowed by a persistent npm executable. Then exit and reopen Codex. Node.js and npm are included in the app and use `/data/npm` as the global npm prefix. Other npm-installed CLI tools in the app can use the same persistent location without mixing executable packages into Codex state. The native updater is documented in the [official Codex developer commands reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
 
 ## Home Assistant Access
 

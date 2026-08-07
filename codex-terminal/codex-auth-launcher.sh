@@ -2,12 +2,14 @@
 
 set -euo pipefail
 
+readonly codex_executable="${CODEX_EXECUTABLE:-codex}"
+
 launch_codex() {
-    exec codex "$@"
+    exec "${codex_executable}" "$@"
 }
 
 is_logged_in() {
-    codex login status >/dev/null 2>&1
+    "${codex_executable}" login status >/dev/null 2>&1
 }
 
 show_auth_menu() {
@@ -27,7 +29,7 @@ EOF
 }
 
 login_with_device_code() {
-    codex login --device-auth
+    "${codex_executable}" login --device-auth
 }
 
 login_with_api_key() {
@@ -47,7 +49,7 @@ login_with_api_key() {
         printf 'API key cannot be empty.\n'
     done
 
-    if printf '%s\n' "${api_key}" | codex login --with-api-key; then
+    if printf '%s\n' "${api_key}" | "${codex_executable}" login --with-api-key; then
         unset api_key
         return 0
     fi

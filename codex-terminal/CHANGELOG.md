@@ -4,7 +4,7 @@
 
 ### Improvements
 - Install the pinned Codex fallback from npm and include Node.js and npm in the app image.
-- Support Codex's native `codex update` command and add `reset-codex-version` for returning to the bundled release.
+- Support Codex's native `codex update` command, fall back automatically when a persistent update cannot run, and add `reset-codex-version` for returning to the bundled release.
 - Store Codex updates under the `/data/npm` global prefix so they take precedence over the bundled version and survive app image upgrades.
 
 ## 0.1.16
