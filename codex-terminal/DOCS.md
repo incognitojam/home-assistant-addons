@@ -15,9 +15,31 @@ The browser-based ChatGPT sign-in option is intentionally not shown because it d
 
 ## Persistence
 
-Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, skills, and standalone package metadata. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
+Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, and skills. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.
 
 The shell home directory and XDG directories are also stored under `/data` so command history and CLI state survive restarts.
+
+The app includes a pinned, image-owned Codex version as a reliable fallback. Opt-in npm updates and their package metadata are installed under `/data/npm`, so they take precedence over the bundled version and survive app image upgrades.
+
+## Codex Updates
+
+Codex does not update automatically during app startup. Codex provides its own self-update command, which detects the npm installation and installs the latest release into the persistent npm prefix.
+
+From the Codex terminal, prefix the command with `!` to run it in the local shell:
+
+```text
+!codex update
+```
+
+Approve access to `/data/npm` if prompted. After the update succeeds, exit and reopen Codex to use the new version. From a regular container shell, the equivalent command is `codex update` without the `!` prefix.
+
+To remove the persistent override and return to the version bundled with the current app image, run:
+
+```text
+!reset-codex-version
+```
+
+Then exit and reopen Codex. Node.js and npm are included in the app and use `/data/npm` as the global npm prefix. Other npm-installed CLI tools in the app can use the same persistent location without mixing executable packages into Codex state. The native updater is documented in the [official Codex developer commands reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
 
 ## Home Assistant Access
 
@@ -42,7 +64,7 @@ This app supports:
 - `amd64`
 - `aarch64`
 
-Other architectures are not included because the Codex standalone Linux packages target x64 and arm64.
+Other architectures are not included because the Codex npm package supports Linux x64 and arm64 binaries.
 
 ## Security Notes
 
