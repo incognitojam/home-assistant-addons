@@ -2,7 +2,7 @@ FROM ghcr.io/home-assistant/base:3.24-2026.06.1
 
 ARG BUILD_FROM
 ARG BUILD_ARCH
-ARG BUILD_VERSION=0.2.20
+ARG BUILD_VERSION=0.2.21
 ARG CLI_VERSION=5.2.0
 ARG CODEX_RELEASE=0.160.0
 ARG TARGETARCH
@@ -29,6 +29,7 @@ RUN apk add --no-cache \
     npm \
     openssh-client \
     perl \
+    procps \
     ripgrep \
     sed \
     ttyd

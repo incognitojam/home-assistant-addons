@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.21
+
+### Fixes
+- Install procps so Codex can read daemon process start times and launch successfully.
+
 ## 0.2.20
 
 ### Maintenance
