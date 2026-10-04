@@ -13,6 +13,18 @@ On first launch, the app checks whether Codex is already authenticated. If not, 
 
 The browser-based ChatGPT sign-in option is intentionally not shown because it does not work reliably from the app's remote terminal environment. After authentication succeeds, Codex starts automatically.
 
+## Command Approvals
+
+The app defaults to Codex's **Approve for me** mode. Routine workspace commands run within the workspace sandbox, and a separate reviewer agent approves or denies requests that would otherwise require your approval. Denied requests may still need your input. See the [official auto-review documentation](https://learn.chatgpt.com/docs/sandboxing/auto-review).
+
+Use `/permissions` to change the mode in your current session. The app supplies defaults through `/etc/codex/config.toml`; saved user settings in `/data/.codex/config.toml`, selected profiles, trusted project settings, and command-line overrides take precedence. Existing preferences are not overwritten, and there is no separate Home Assistant option.
+
+To keep manual approval as your default, set this top-level value in `/data/.codex/config.toml`, then restart the app:
+
+```toml
+approvals_reviewer = "user"
+```
+
 ## Persistence
 
 Codex state is stored in `/data/.codex`, including authentication, configuration, logs, sessions, plugins, and skills. Home Assistant includes `/data` in app backups unless you exclude it in a future app release.

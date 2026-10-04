@@ -7,6 +7,7 @@ A Home Assistant app that opens the OpenAI Codex CLI in a browser terminal.
 - Pinned Codex CLI fallback installed with npm
 - Opt-in Codex updates that persist across app image upgrades
 - Pre-launch authentication picker for device code or API key sign-in
+- Automatic command approval review through Codex's Approve for me mode
 - Browser terminal through Home Assistant ingress
 - Starts in `/config` with write access to Home Assistant configuration
 - Bundled `AGENTS.md` guidance for Home Assistant-aware Codex sessions
@@ -18,7 +19,7 @@ See [DOCS.md](DOCS.md) for setup and usage details.
 
 ## Development
 
-CI builds both supported architectures and tests actual Codex daemon startup, version reporting, and shutdown. The test uses a disposable container with empty state, no network access, and no credentials or model requests.
+CI builds both supported architectures and tests actual Codex daemon startup, version reporting, and shutdown. The daemon test uses a disposable container with empty state, no network access, and no credentials or model requests. Approval tests exercise the installed authentication launcher and native config loading with synthetic credentials, checking automatic review defaults and saved user overrides without model requests.
 
 Run the same test locally after building the image:
 

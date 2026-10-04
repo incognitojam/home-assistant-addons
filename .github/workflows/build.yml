@@ -65,3 +65,17 @@ jobs:
             --env CODEX_SQLITE_HOME=/data/.codex \
             local/codex-terminal:${{ matrix.arch }} \
             -s < codex-terminal/tests/daemon-startup.sh
+
+      - name: Test Codex approval defaults
+        if: matrix.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint node \
+            --env HOME=/data/home \
+            --env CODEX_HOME=/data/.codex \
+            --env CODEX_SQLITE_HOME=/data/.codex \
+            --volume "${PWD}/codex-terminal/tests:/tests:ro" \
+            local/codex-terminal:${{ matrix.arch }} \
+            --test /tests/approval-defaults.test.mjs
