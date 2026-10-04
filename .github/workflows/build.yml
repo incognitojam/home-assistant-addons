@@ -46,8 +46,22 @@ jobs:
           file: ./${{ matrix.addon }}/Dockerfile
           platforms: ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }}
           push: false
+          load: ${{ matrix.addon == 'codex-terminal' }}
           build-args: |
             BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:3.22
             BUILD_ARCH=${{ matrix.arch }}
             BUILD_VERSION=${{ steps.addon.outputs.version }}
           tags: local/${{ matrix.addon }}:${{ matrix.arch }}
+
+      - name: Test Codex daemon startup
+        if: matrix.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --interactive --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint /bin/bash \
+            --env HOME=/data/home \
+            --env CODEX_HOME=/data/.codex \
+            --env CODEX_SQLITE_HOME=/data/.codex \
+            local/codex-terminal:${{ matrix.arch }} \
+            -s < codex-terminal/tests/daemon-startup.sh
