@@ -2,7 +2,7 @@ FROM ghcr.io/home-assistant/base:3.24-2026.06.1
 
 ARG BUILD_FROM
 ARG BUILD_ARCH
-ARG BUILD_VERSION=0.2.21
+ARG BUILD_VERSION=0.2.22
 ARG CLI_VERSION=5.2.0
 ARG CODEX_RELEASE=0.160.0
 ARG TARGETARCH
@@ -64,12 +64,13 @@ WORKDIR /config
 COPY run.sh /run.sh
 COPY AGENTS.md /opt/AGENTS.md
 COPY codex-profile.sh /etc/profile.d/90-codex.sh
+COPY codex-defaults.toml /etc/codex/config.toml
 COPY codex-auth-launcher.sh /usr/local/bin/codex-auth-launcher
 COPY reset-codex-version.sh /usr/local/bin/reset-codex-version
 RUN chmod a+x \
         /run.sh \
         /usr/local/bin/codex-auth-launcher \
         /usr/local/bin/reset-codex-version \
-    && chmod 644 /etc/profile.d/90-codex.sh /opt/AGENTS.md
+    && chmod 644 /etc/profile.d/90-codex.sh /etc/codex/config.toml /opt/AGENTS.md
 
 CMD ["/run.sh"]

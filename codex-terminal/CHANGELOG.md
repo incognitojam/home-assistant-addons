@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.22
+
+### Improvements
+- Default to Codex's Approve for me mode for automatic command approval review while retaining the workspace sandbox.
+- Preserve saved Codex permission settings through the native configuration precedence.
+
 ## 0.2.21
 
 ### Fixes

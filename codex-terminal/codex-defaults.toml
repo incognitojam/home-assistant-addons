@@ -1,0 +1,4 @@
+# Image defaults; user, profile, project, and CLI settings take precedence.
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+sandbox_mode = "workspace-write"
