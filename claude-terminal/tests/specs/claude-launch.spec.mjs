@@ -30,8 +30,12 @@ test('page reload reattaches to the running Claude and repaints it', async ({ pa
     expect(before, 'a running Claude process').not.toBe('');
 
     await page.reload();
-    await waitForText(page, screen, { message: 'Claude repainted after the reload' });
-    expect(await screenText(page), 'Claude on screen, not only in the scrollback').toMatch(screen);
+    await page.waitForFunction(() => window.term?.buffer?.active !== undefined);
+    // Wait on the screen, not the whole buffer: the history replayed on
+    // reattach can match in the scrollback before tmux has redrawn the screen.
+    await expect.poll(() => screenText(page), {
+        message: 'Claude repainted on screen after the reload, not only in the scrollback',
+    }).toMatch(screen);
     expect(await claudePids(), 'the same Claude process after the reload').toBe(before);
 });
 
