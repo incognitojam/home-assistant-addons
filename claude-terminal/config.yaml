@@ -1,7 +1,8 @@
 ---
 name: "Claude Code"
 description: "Terminal interface for Anthropic's Claude Code CLI with persistent auth"
-version: "1.9.0"
+version: "1.9.1"
+image: "ghcr.io/incognitojam/{arch}-claude-terminal"
 slug: "claude_terminal"
 init: false
 

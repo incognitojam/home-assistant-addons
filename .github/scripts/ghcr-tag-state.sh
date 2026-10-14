@@ -19,7 +19,7 @@ body="$(mktemp)"
 trap 'rm -f "${body}"' EXIT
 
 status="$(curl --silent --show-error --retry 3 --output "${body}" --write-out '%{http_code}' \
-    "${auth[@]}" "https://ghcr.io/token?service=ghcr.io&scope=repository:${repository}:pull")"
+    ${auth[@]+"${auth[@]}"} "https://ghcr.io/token?service=ghcr.io&scope=repository:${repository}:pull")"
 case "${status}" in
     200) ;;
     # GHCR refuses a pull token for a package that does not exist, and also
