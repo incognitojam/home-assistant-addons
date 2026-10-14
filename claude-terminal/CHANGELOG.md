@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.1
+
+### 🛠️ Improvements
+- **Home Assistant context moved to private storage**: Claude's short context file at `/data/home/.claude/rules/home-assistant.md` is refreshed on every start, and `/config/CLAUDE.md` is now yours — an unmodified copy installed by an earlier version is removed automatically, while an edited copy is kept.
+
+### 📚 Documentation
+- **Rewritten user documentation**: A shorter README points to a single complete guide in the Documentation tab, with references to commands that don't exist removed.
+
 ## 1.8.0
 
 ### 🔒 Security Fixes
