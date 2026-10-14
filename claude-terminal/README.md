@@ -61,10 +61,16 @@ claude-logout
 
 The add-on requires no configuration. All settings are handled automatically:
 
-- **Port**: Web interface runs on port 7681
-- **Authentication**: OAuth with Anthropic (credentials stored securely in `/data/home/.claude/.credentials.json`)
+- **Network**: Use the Home Assistant sidebar panel via ingress. The terminal listens on port 7681 inside the container; the optional direct host port is disabled by default.
+- **Authentication**: Home Assistant login for sidebar access; Anthropic OAuth for Claude usage (credentials stored in `/data/home/.claude/.credentials.json`).
 - **Terminal**: Full bash environment with Claude Code CLI pre-installed
 - **Volumes**: Access to both `/config` (Home Assistant) and `/addons` (for development)
+
+For optional direct access, set a host port for `7681/tcp` in the add-on's **Network** settings, save, and restart. Leave the field empty to disable it; the sidebar panel needs no host port.
+
+**Warning:** Enabling the direct port exposes an unauthenticated root terminal to the network, with access to Home Assistant configuration and the add-on's manager-level Supervisor token. Anthropic OAuth does not protect the terminal.
+
+Existing installations retain saved Network settings across updates. Clear any configured `7681/tcp` host port, save, and restart to disable direct access.
 
 ## Troubleshooting
 
@@ -87,8 +93,8 @@ For local development and testing:
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
-# Run locally
-docker run -p 7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
+# Run locally (bind the unauthenticated terminal to localhost only)
+docker run -p 127.0.0.1:7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
 
 # Lint and validate
 hadolint ./claude-terminal/Dockerfile
@@ -103,7 +109,7 @@ curl -I http://localhost:7681
 - **Container Runtime**: Compatible with Docker/Podman
 - **Web Terminal**: ttyd for browser-based access
 - **Process Management**: s6-overlay for reliable service startup
-- **Networking**: Ingress support with Home Assistant reverse proxy
+- **Networking**: Home Assistant ingress for sidebar access; optional unauthenticated direct host port disabled by default
 
 ## Security
 
@@ -122,8 +128,8 @@ This add-on can be built and tested locally with Docker or Podman:
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
   -t local/claude-terminal:test ./claude-terminal
 
-# Run the add-on locally on port 7681
-docker run -p 7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
+# Run the add-on locally (bind the unauthenticated terminal to localhost only)
+docker run -p 127.0.0.1:7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
 
 # Lint the Dockerfile and test the web endpoint
 hadolint ./claude-terminal/Dockerfile

@@ -22,9 +22,9 @@ panel_admin: true
 
 # Port configuration
 ports:
-  7681/tcp: 7681
+  7681/tcp: null
 ports_description:
-  7681/tcp: "Web terminal (not required for ingress)"
+  7681/tcp: "Optional unauthenticated direct terminal port (not needed for the sidebar panel)"
 
 # Add-on configuration options
 # Defaults live here (these are the values applied to new and upgrading
@@ -47,7 +47,6 @@ hassio_api: true
 hassio_role: manager
 homeassistant_api: true
 auth_api: true
-host_dbus: true
 
 # Service startup configuration
 startup: services
