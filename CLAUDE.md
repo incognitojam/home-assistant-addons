@@ -9,7 +9,9 @@ This repository contains Home Assistant add-ons, specifically the **Claude Code*
 ## Development Environment
 
 ### Setup
-Use Docker for local container testing.
+Use Docker for local container testing. Choose `aarch64-base` on ARM/Apple Silicon or `amd64-base` on Intel/AMD for native builds. Mount both `/data` (persistent Claude install and authentication) and `/config`.
+
+Local containers have no Supervisor API, so select modes with `-e AUTO_LAUNCH_CLAUDE=false` (session picker) or `true` (direct launch), and `-e AUTO_UPDATE_CLAUDE=false` or `true` for updates. These environment overrides take precedence over add-on options.
 
 ### Core Development Commands
 ```bash
