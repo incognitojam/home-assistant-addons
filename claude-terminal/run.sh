@@ -154,10 +154,13 @@ configure_permission_mode() {
 # Verify required tools are available (installed at build time)
 install_tools() {
     bashio::log.info "Verifying tools..."
-    if ! command -v ttyd >/dev/null 2>&1; then
-        bashio::log.error "ttyd not found - image may be corrupted"
-        exit 1
-    fi
+    local tool
+    for tool in ttyd tmux; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            bashio::log.error "${tool} not found - image may be corrupted"
+            exit 1
+        fi
+    done
     bashio::log.info "Tools verified successfully"
 }
 
@@ -279,13 +282,14 @@ start_web_terminal() {
         bashio::log.warning "Patched ttyd index not found; falling back to bundled terminal UI"
     fi
     
-    # Run ttyd with improved configuration
+    # Each connection attaches to one shared tmux session, so a browser refresh
+    # or ingress reconnect resumes the running session instead of killing it.
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \
         "${ttyd_index_args[@]}" \
         --writable \
-        bash -c "$launch_command"
+        /opt/scripts/attach-session.sh "$launch_command"
 }
 
 # Main execution

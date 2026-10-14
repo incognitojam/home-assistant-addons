@@ -53,3 +53,39 @@ export async function typeLine(page, text) {
     await page.keyboard.type(text);
     await page.keyboard.press('Enter');
 }
+
+// Returns the viewport row of the first on-screen line that starts with
+// `text` (so command output, not the echoed command), and its column 0.
+export async function locateText(page, text) {
+    const row = await page.evaluate(prefix => {
+        const buffer = window.term.buffer.active;
+        for (let row = 0; row < window.term.rows; row++) {
+            if (buffer.getLine(buffer.viewportY + row)?.translateToString(true).startsWith(prefix)) return row;
+        }
+        return -1;
+    }, text);
+    expect(row, `a line starting with "${text}" should be on screen`).toBeGreaterThanOrEqual(0);
+    return { row, col: 0 };
+}
+
+// Page coordinates of the centre of a viewport cell.
+export async function cellCenter(page, { row, col }) {
+    return page.evaluate(({ row, col }) => {
+        const box = document.querySelector('.xterm-screen').getBoundingClientRect();
+        const width = box.width / window.term.cols;
+        const height = box.height / window.term.rows;
+        return { x: box.left + (col + 0.5) * width, y: box.top + (row + 0.5) * height };
+    }, { row, col });
+}
+
+// Only the lines currently on screen, without the scrollback.
+export async function screenText(page) {
+    return page.evaluate(() => {
+        const buffer = window.term.buffer.active;
+        const lines = [];
+        for (let row = 0; row < window.term.rows; row++) {
+            lines.push((buffer.getLine(buffer.viewportY + row)?.translateToString(true) ?? '').trimEnd());
+        }
+        return lines.join('\n').trimEnd();
+    });
+}

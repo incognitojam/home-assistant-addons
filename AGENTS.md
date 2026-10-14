@@ -83,4 +83,4 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 - On Alpine (musl), Claude Code needs `USE_BUILTIN_RIPGREP=0` and the system `ripgrep` package.
 - Don't install a `$BROWSER` or `xdg-open` shim in claude-terminal. If Claude finds a browser opener, it uses its localhost OAuth callback, which the user's remote browser can't reach. Without one, it shows a login URL and asks the user to paste back the code.
 - codex-terminal prefers a Codex the user installed into `/data/npm` (`npm install -g`), as long as it passes `codex --version`. Otherwise it uses the bundled `/usr/local/bin/codex`.
-- ttyd starts a new process for each browser connection. Reloading the page ends the running session, and `tests/specs/refresh.spec.mjs` records that current behaviour.
+- Each ttyd connection attaches to the shared tmux session through `scripts/attach-session.sh` and `/opt/tmux.conf`; tests kill the tmux server between tests.

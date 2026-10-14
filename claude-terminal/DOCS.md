@@ -34,6 +34,10 @@ With auto-launch disabled, the picker offers:
 
 From the shell, run `claude` for an interactive session, `claude --help` for CLI options, or `ha --help` for Home Assistant management commands.
 
+### Refreshing and reconnecting
+
+Refreshing or closing the page, or an ingress reconnect, leaves the terminal running; opening it again in any tab or on any device returns to the same shared session with its recent output. To start a fresh session, exit (`/exit` in Claude or `exit` in the shell) and press Enter to reconnect. Restarting the add-on also ends the session; use `claude -c` to continue the last conversation.
+
 ## Network and security
 
 Use the sidebar panel or **OPEN WEB UI** through Home Assistant ingress, protected by your Home Assistant login. No host port is required.

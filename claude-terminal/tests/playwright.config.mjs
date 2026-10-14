@@ -8,7 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
 //                      starts; its @network test needs internet access
 //
 // IMAGE selects the add-on image under test (default local/claude-terminal:test).
-const terminalSpecs = ['startup.spec.mjs', 'terminal.spec.mjs', 'refresh.spec.mjs'];
+const terminalSpecs = ['startup.spec.mjs', 'terminal.spec.mjs', 'refresh.spec.mjs', 'fidelity.spec.mjs'];
 
 export default defineConfig({
     testDir: './specs',

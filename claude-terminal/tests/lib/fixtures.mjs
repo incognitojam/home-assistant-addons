@@ -49,7 +49,11 @@ export const test = base.extend({
         await proxy.close();
     }, { scope: 'worker' }],
 
+    // Every connection attaches to one shared tmux session that outlives the
+    // page, so end it before each test to start from the configured launch
+    // command rather than whatever the previous test left running.
     terminalUrl: async ({ addon, ingress }, use) => {
+        await addon.exec('tmux', 'kill-server').catch(() => {});
         if (ingress) ingress.misses.length = 0;
         await use(ingress ? ingress.url : `${addon.baseUrl}/`);
     },
