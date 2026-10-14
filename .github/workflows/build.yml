@@ -17,7 +17,8 @@ on:
 jobs:
   build:
     name: Build Docker Image
-    runs-on: ubuntu-latest
+    # Keep both architectures on Ubuntu 24.04 for Playwright system dependencies.
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       matrix:
@@ -26,9 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -46,7 +44,7 @@ jobs:
           file: ./${{ matrix.addon }}/Dockerfile
           platforms: ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }}
           push: false
-          load: ${{ matrix.addon == 'codex-terminal' || matrix.arch == 'amd64' }}
+          load: true
           build-args: |
             BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:3.22
             BUILD_ARCH=${{ matrix.arch }}
@@ -80,10 +78,9 @@ jobs:
             local/codex-terminal:${{ matrix.arch }} \
             --test /tests/approval-defaults.test.mjs
 
-      # Browser end-to-end tests run on amd64 only: under QEMU the aarch64
-      # image and browsers would be too slow to be worth it.
+      # Native runners exercise both add-on architectures with Chromium and WebKit.
       - name: Set up Node.js for e2e tests
-        if: matrix.addon == 'claude-terminal' && matrix.arch == 'amd64'
+        if: matrix.addon == 'claude-terminal'
         uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -91,36 +88,36 @@ jobs:
           cache-dependency-path: claude-terminal/tests/package-lock.json
 
       - name: Install e2e test dependencies
-        if: matrix.addon == 'claude-terminal' && matrix.arch == 'amd64'
+        if: matrix.addon == 'claude-terminal'
         working-directory: claude-terminal/tests
         run: |
           npm ci
           npx playwright install --with-deps chromium webkit
 
       - name: Test claude-terminal end to end
-        if: matrix.addon == 'claude-terminal' && matrix.arch == 'amd64'
+        if: matrix.addon == 'claude-terminal'
         timeout-minutes: 10
         working-directory: claude-terminal/tests
         env:
-          IMAGE: local/claude-terminal:amd64
+          IMAGE: local/claude-terminal:${{ matrix.arch }}
         run: npm test -- --grep-invert @network
 
       # Kept separate so a failure that depends on reaching Anthropic's API
       # is easy to tell apart from a broken image.
       - name: Test claude-terminal end to end (network)
-        if: matrix.addon == 'claude-terminal' && matrix.arch == 'amd64'
+        if: matrix.addon == 'claude-terminal'
         timeout-minutes: 5
         working-directory: claude-terminal/tests
         env:
-          IMAGE: local/claude-terminal:amd64
+          IMAGE: local/claude-terminal:${{ matrix.arch }}
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/network
         run: npm test -- --grep @network --output test-results/network
 
       - name: Upload e2e test artifacts
-        if: failure() && matrix.addon == 'claude-terminal' && matrix.arch == 'amd64'
+        if: failure() && matrix.addon == 'claude-terminal'
         uses: actions/upload-artifact@v7
         with:
-          name: claude-terminal-e2e-results
+          name: claude-terminal-e2e-results-${{ matrix.arch }}
           path: |
             claude-terminal/tests/test-results/
             claude-terminal/tests/playwright-report/
