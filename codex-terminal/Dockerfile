@@ -62,7 +62,7 @@ RUN set -eux; \
 WORKDIR /config
 
 COPY run.sh /run.sh
-COPY AGENTS.md /opt/AGENTS.md
+COPY home-assistant-context.md /opt/home-assistant-context.md
 COPY codex-profile.sh /etc/profile.d/90-codex.sh
 COPY codex-defaults.toml /etc/codex/config.toml
 COPY codex-auth-launcher.sh /usr/local/bin/codex-auth-launcher
@@ -71,6 +71,6 @@ RUN chmod a+x \
         /run.sh \
         /usr/local/bin/codex-auth-launcher \
         /usr/local/bin/reset-codex-version \
-    && chmod 644 /etc/profile.d/90-codex.sh /etc/codex/config.toml /opt/AGENTS.md
+    && chmod 644 /etc/profile.d/90-codex.sh /etc/codex/config.toml /opt/home-assistant-context.md
 
 CMD ["/run.sh"]

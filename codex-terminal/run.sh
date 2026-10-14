@@ -88,59 +88,81 @@ cd /config 2>/dev/null || true
 EOF
 }
 
+# Codex loads AGENTS.md from CODEX_HOME as global instructions. Keep user
+# overrides and edits; the private stamp tracks only copies managed here.
 install_codex_context() {
-    local source_file="/opt/AGENTS.md"
-    local target_file="/config/AGENTS.md"
-    local stamp_file="${CODEX_HOME:-/data/.codex}/AGENTS.md.sha256"
-    local source_hash=""
-    local target_hash=""
-    local previous_hash=""
+    local source_file="/opt/home-assistant-context.md"
+    local target_file="${CODEX_HOME}/AGENTS.md"
+    local stamp_file="${CODEX_HOME}/home-assistant-context.sha256"
+    local source_hash target_hash previous_hash=""
 
-    if [ ! -f "${source_file}" ]; then
-        bashio::log.debug "No bundled AGENTS.md found, skipping installation"
+    remove_legacy_codex_context
+
+    if ! source_hash=$(sha256sum "$source_file" 2>/dev/null | cut -d ' ' -f1); then
+        bashio::log.warning "Could not checksum bundled Home Assistant context"
         return 0
     fi
 
-    if ! source_hash="$(sha256sum "${source_file}" 2>/dev/null | cut -d ' ' -f1)" || [ -z "${source_hash}" ]; then
-        bashio::log.warning "Could not checksum bundled AGENTS.md, continuing without installing it"
-        return 0
+    if [ -f "$stamp_file" ]; then
+        previous_hash=$(head -n 1 "$stamp_file" 2>/dev/null || true)
     fi
 
-    mkdir -p "$(dirname "${stamp_file}")" 2>/dev/null || true
-
-    if [ ! -f "${target_file}" ]; then
-        bashio::log.info "Installing AGENTS.md to /config for Codex context..."
-        if cp "${source_file}" "${target_file}"; then
-            chmod 644 "${target_file}" 2>/dev/null || true
-            printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
-            bashio::log.info "AGENTS.md installed successfully"
-        else
-            bashio::log.warning "Failed to install AGENTS.md, continuing anyway"
+    if [ -e "$target_file" ] || [ -L "$target_file" ]; then
+        target_hash=$(sha256sum "$target_file" 2>/dev/null | cut -d ' ' -f1) || target_hash=""
+        if [ -L "$target_file" ] || [ ! -f "$target_file" ] || {
+            [ "$target_hash" != "$source_hash" ] && {
+                [ -z "$previous_hash" ] || [ "$target_hash" != "$previous_hash" ];
+            };
+        }; then
+            bashio::log.info "Keeping ${target_file} because it contains user instructions"
+            return 0
         fi
-        return 0
     fi
 
-    if target_hash="$(sha256sum "${target_file}" 2>/dev/null | cut -d ' ' -f1)" && [ "${target_hash}" = "${source_hash}" ]; then
-        printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
-        return 0
-    fi
-
-    if [ -f "${stamp_file}" ]; then
-        previous_hash="$(head -n 1 "${stamp_file}" 2>/dev/null || true)"
-    fi
-
-    if [ -n "${previous_hash}" ] && [ "${target_hash}" = "${previous_hash}" ]; then
-        bashio::log.info "Updating AGENTS.md in /config..."
-        if cp "${source_file}" "${target_file}"; then
-            chmod 644 "${target_file}" 2>/dev/null || true
-            printf '%s\n' "${source_hash}" > "${stamp_file}" 2>/dev/null || true
-            bashio::log.info "AGENTS.md updated successfully"
-        else
-            bashio::log.warning "Failed to update AGENTS.md, continuing anyway"
+    if cp "$source_file" "$target_file"; then
+        chmod 644 "$target_file" 2>/dev/null || true
+        if ! printf '%s\n' "$source_hash" > "$stamp_file"; then
+            bashio::log.warning "Could not save Home Assistant context checksum; future updates will preserve this copy"
         fi
     else
-        bashio::log.info "Existing /config/AGENTS.md has local changes; leaving it unchanged"
+        bashio::log.warning "Could not install Home Assistant context to ${target_file}"
     fi
+}
+
+# Match all historical shipped copies, or the last installed legacy checksum.
+# Never follow a /config symlink; it belongs to the user even if bytes match.
+remove_legacy_codex_context() {
+    local legacy_file="/config/AGENTS.md"
+    local stamp_file="${CODEX_HOME}/AGENTS.md.sha256"
+    local legacy_hash previous_hash=""
+    local shipped=false
+
+    if [ -f "$legacy_file" ] && [ ! -L "$legacy_file" ]; then
+        legacy_hash=$(sha256sum "$legacy_file" 2>/dev/null | cut -d ' ' -f1) || return 0
+        if [ -f "$stamp_file" ]; then
+            previous_hash=$(head -n 1 "$stamp_file" 2>/dev/null || true)
+        fi
+        case "$legacy_hash" in
+            66b1475f9d78c8cb4b950e1dd7c61e8667de5f0de008f140f2421d917d24b482 | \
+            6c44efa8f67c9d46cef1b949a4eabbcc4d56565261bba8d5424bc58854b8b0bc | \
+            5237c07aef93d4cbcbe2b976bc73ca47106cba6a975e4cab4c2ed19f82b9035b | \
+            c88e5a49ce4db534d1b8bd4e0707e0a2717371f200113b47be2caaf4b1a328f8)
+                shipped=true ;;
+        esac
+        if [ "$shipped" = true ] || { [ -n "$previous_hash" ] && [ "$legacy_hash" = "$previous_hash" ]; }; then
+            if rm -f "$legacy_file"; then
+                bashio::log.info "Removed unmodified /config/AGENTS.md installed by an earlier add-on version"
+            else
+                bashio::log.warning "Could not remove legacy /config/AGENTS.md"
+                return 0
+            fi
+        else
+            bashio::log.info "Keeping /config/AGENTS.md because it differs from the add-on's old copy"
+        fi
+    elif [ -e "$legacy_file" ] || [ -L "$legacy_file" ]; then
+        bashio::log.info "Keeping /config/AGENTS.md because it is not a regular add-on context file"
+    fi
+    rm -f "$stamp_file" || bashio::log.warning "Could not retire legacy context checksum"
 }
 
 verify_tools() {

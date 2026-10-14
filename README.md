@@ -32,20 +32,9 @@ Features:
 
 ### Claude Code
 
-A web-based terminal interface with Claude Code CLI pre-installed. This app provides a terminal environment directly in your Home Assistant dashboard, allowing you to use Claude's powerful AI capabilities for coding, automation, and configuration tasks.
+Claude Code in a browser terminal, with access to your Home Assistant configuration and persistent authentication.
 
-Features:
-- Web terminal access through your Home Assistant UI
-- Pre-installed Claude Code CLI that launches automatically
-- Direct access to your Home Assistant config directory
-- No configuration needed (uses OAuth)
-- Access to Claude's complete capabilities including:
-  - Code generation and explanation
-  - Debugging assistance
-  - Home Assistant automation help
-  - Learning resources
-
-[Documentation](claude-terminal/DOCS.md)
+See the [Claude Code user guide](claude-terminal/DOCS.md) for installation, sign-in, options, and security.
 
 ## Support
 

@@ -61,14 +61,14 @@ RUN HA_ARCH=$(cat /tmp/ha_arch) && \
 # Set working directory to the runtime Home Assistant configuration mount
 WORKDIR /config
 
-# Copy startup script, modular scripts, tmux config, and Claude context documentation
+# Copy startup script, helper scripts, tmux config, and Home Assistant context for Claude
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
 COPY tmux.conf /opt/tmux.conf
-COPY CLAUDE.md /opt/CLAUDE.md
+COPY home-assistant-context.md /opt/home-assistant-context.md
 RUN chmod +x /run.sh \
     && chmod +x /opt/scripts/*.sh \
-    && chmod 644 /opt/tmux.conf /opt/CLAUDE.md \
+    && chmod 644 /opt/tmux.conf /opt/home-assistant-context.md \
     && /opt/scripts/create-ttyd-index.sh
 
 # Use exec form for better signal handling
