@@ -65,13 +65,18 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 
 ## CI
 
-- `.github/workflows/build.yml` builds each add-on for amd64 and aarch64 (aarch64 under QEMU). For codex-terminal it runs `tests/daemon-startup.sh` and `tests/approval-defaults.test.mjs` inside the image. For claude-terminal it runs the e2e tests on amd64 only, with the `@network` test as a separate step.
-- `.github/workflows/lint.yml` runs hadolint v2.15.1 on both Dockerfiles.
+`.github/workflows/build.yml` runs on pull requests, on pushes to `main` and on manual dispatch.
+
+- `build` builds each add-on natively for amd64 and aarch64 and tests the image. For codex-terminal it runs the scripts in `tests/` inside the image. For claude-terminal it runs the e2e tests, with the `@network` test as a separate step.
+- `hadolint` lints both Dockerfiles with hadolint v2.15.1.
+- `check` looks up whether `ghcr.io/incognitojam/{arch}-<add-on>:<version>` exists for the version in each `config.yaml`, using `.github/scripts/ghcr-tag-state.sh`.
+- `publish` runs only on `main`. For each missing tag it pushes the image that `build` just tested, and never overwrites an existing tag. It is the only job with `packages: write`.
+- `CI` is the required check. It passes only when `check`, `build` and `hadolint` all succeed.
 
 ## Conventions
 
 - Commit and PR titles use Scoped Commits with the add-on as the scope, for example `claude-terminal: <description>` or `codex-terminal: <description>`. Repository-wide changes use `docs:` or `ci:`.
-- A release bumps `version` in the add-on's `config.yaml` and adds a matching section to its `CHANGELOG.md`. Changes can land on `main` between releases, and one release can cover several of them. For codex-terminal, also keep `ARG BUILD_VERSION` in the `Dockerfile` in step with the version.
+- A release bumps `version` in the add-on's `config.yaml` and adds a matching section to its `CHANGELOG.md`. Merging it to `main` publishes that version's images. Changes can land on `main` between releases, and one release can cover several of them. Never reuse a version: its images are already published. For codex-terminal, also keep `ARG BUILD_VERSION` in the `Dockerfile` in step with the version.
 - Add-on scripts start with `#!/usr/bin/with-contenv bashio` and report through `bashio::log.*`.
 - Indent shell with 4 spaces and YAML with 2 spaces.
 - Put option defaults in `config.yaml`, and their user-facing names and descriptions in `translations/en.yaml`.
