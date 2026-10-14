@@ -13,6 +13,9 @@ test('page reload reattaches to the running session with its output', async ({ p
     // seeing them after the reload means the history was replayed, not just
     // the visible screen redrawn.
     await typeLine(page, 'for i in $(seq 200); do echo "history-line-$i"; done');
+    // Wait for the prompt before typing again: while the loop runs, the tty
+    // echoes typeahead into its output (such as the "e" of the next "echo").
+    await waitForText(page, /^history-line-200\n.*[#$]$/m, { message: 'bash prompt after the loop' });
     await typeLine(page, 'echo "session-pid=$$"');
     const [, pid] = await waitForText(page, /^session-pid=(\d+)$/m);
 
