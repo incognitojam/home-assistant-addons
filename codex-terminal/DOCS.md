@@ -47,9 +47,9 @@ The Home Assistant CLI is installed as `ha`. The app also has Supervisor API and
 
 ## Codex Instructions
 
-The container includes a bundled `AGENTS.md` with Home Assistant-specific context, important paths, available tools, and safe editing expectations. On launch, the app installs it to `/config/AGENTS.md` so Codex loads it as project guidance for the Home Assistant configuration directory.
+The add-on installs short Home Assistant guidance at `/data/.codex/AGENTS.md`, Codex's global instructions location in private add-on storage. Updates replace it only while it matches the last bundled copy; existing user instructions and local edits are preserved. Put project instructions in `/config/AGENTS.md`. A user-created `/data/.codex/AGENTS.override.md` takes precedence over the global file.
 
-If `/config/AGENTS.md` already exists and has local edits, the app leaves it unchanged. Future bundled updates replace the file only when the existing file still matches a previously installed bundled copy.
+Earlier versions installed this guidance at `/config/AGENTS.md`. On startup, the add-on removes only unchanged copies it shipped, preserves modified copies, and retires the old checksum stamp.
 
 ## Terminal
 
