@@ -21,8 +21,9 @@ const test = base.extend({
         });
     }, { scope: 'worker' }],
     addon: [async ({ addon, savedFullscreen }, use) => {
+        // Acknowledge the unrelated auto-mode nudge before testing renderer startup.
         await addon.exec('sh', '-c', `cat > /data/home/.claude.json <<'EOF'
-{"hasCompletedOnboarding":true,"theme":"dark","projects":{"/config":{"hasTrustDialogAccepted":true,"hasCompletedProjectOnboarding":true}}}
+{"hasCompletedOnboarding":true,"hasSeenAutoDefaultNudge":true,"theme":"dark","projects":{"/config":{"hasTrustDialogAccepted":true,"hasCompletedProjectOnboarding":true}}}
 EOF
 cat > /data/home/.claude/settings.json <<'EOF'
 ${JSON.stringify({ ...(savedFullscreen ? { tui: 'fullscreen' } : {}), alwaysThinkingEnabled: false, permissions: { defaultMode: 'default' } })}
@@ -46,13 +47,6 @@ test('normal interactive launches keep classic rendering and browser controls', 
     if (launch === 'manual') {
         await openBashShell(page);
         await typeLine(page, 'claude');
-    }
-    const [startup] = await waitForText(page, /Make auto mode your default permission mode\?|for shortcuts|Try "/i, { timeout: 30_000 });
-    if (/Make auto mode/i.test(startup)) {
-        await page.evaluate(() => window.term.focus());
-        await page.keyboard.press('ArrowDown');
-        await waitForText(page, /❯\s*No, keep manual mode/);
-        await page.keyboard.press('Enter');
     }
     await waitForText(page, /for shortcuts|Try "/i, { timeout: 30_000 });
     await typeLine(page, '/tui');
