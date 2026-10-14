@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.26
+
+### Fixes
+- Move Codex's Home Assistant instructions from `/config/AGENTS.md` to private add-on storage at `/data/.codex/AGENTS.md`, preserving your own instructions there and preventing Claude Code from picking up Codex's instructions. Automatically remove an unmodified `/config/AGENTS.md` installed by an earlier version; keep edited copies.
+
 ## 0.2.25
 
 ### Maintenance
