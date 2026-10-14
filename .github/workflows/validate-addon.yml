@@ -111,6 +111,16 @@ jobs:
             local/codex-terminal:${{ matrix.arch }} \
             --test /tests/approval-defaults.test.mjs
 
+      - name: Test Claude native launcher bootstrap
+        if: inputs.addon == 'claude-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --interactive --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint /bin/bash \
+            local/claude-terminal:${{ matrix.arch }} \
+            -s < claude-terminal/tests/native-launcher.sh
+
       # Native runners exercise both add-on architectures with Chromium and WebKit.
       - name: Set up Node.js for e2e tests
         if: inputs.addon == 'claude-terminal'

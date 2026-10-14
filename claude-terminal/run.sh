@@ -33,6 +33,71 @@ get_addon_option() {
     echo "$value"
 }
 
+# Claude's native updater only manages a direct link into its versions directory.
+# Seed the image binary once; a link through /root is treated as a custom launcher
+# and is deliberately left unchanged by the updater, even after a download.
+bootstrap_claude_launcher() {
+    local launcher="$HOME/.local/bin/claude"
+    local bundled="/root/.local/bin/claude"
+    local versions="$XDG_DATA_HOME/claude/versions"
+    local resolved version_output version seed tmp
+
+    # Only migrate the exact fallback created by older add-on versions. All
+    # other launchers (including broken custom links) belong to the user.
+    if [ -e "$launcher" ] || [ -L "$launcher" ]; then
+        if [ ! -L "$launcher" ] || [ "$(readlink "$launcher")" != "$bundled" ]; then
+            bashio::log.info "Using existing Claude launcher at $launcher"
+            return 0
+        fi
+    fi
+
+    if ! resolved=$(readlink -f "$bundled") || [ ! -f "$resolved" ] || [ ! -x "$resolved" ] \
+        || ! version_output=$(timeout 15 "$resolved" --version); then
+        bashio::log.error "Cannot run bundled Claude at $bundled; check the add-on image and restart"
+        return 1
+    fi
+    if [[ "$version_output" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\ \(Claude\ Code\)$ ]]; then
+        version="${BASH_REMATCH[1]}"
+    else
+        bashio::log.error "Cannot identify bundled Claude version; leaving $launcher unchanged"
+        return 1
+    fi
+    seed="$versions/$version"
+
+    if ! mkdir -p "$versions" "$HOME/.local/bin"; then
+        bashio::log.error "Cannot create Claude installation directories; check free space and permissions in /data"
+        return 1
+    fi
+    if [ ! -e "$seed" ] && [ ! -L "$seed" ]; then
+        if ! tmp=$(mktemp "$versions/.bootstrap-XXXXXX"); then
+            bashio::log.error "Cannot seed Claude $version; check free space and permissions in /data"
+            return 1
+        fi
+        # Rename within the destination directory so partial copies are never
+        # selected. Never overwrite a version already downloaded by Claude.
+        if ! cp "$resolved" "$tmp" || ! chmod 755 "$tmp" || ! mv -n "$tmp" "$seed"; then
+            rm -f "$tmp"
+            bashio::log.error "Cannot seed Claude $version; check free space and permissions in /data"
+            return 1
+        fi
+        rm -f "$tmp"
+    fi
+
+    # A pre-existing slot must be a real, runnable binary for this version.
+    # Preserve invalid files for diagnosis rather than silently replacing them.
+    if [ -L "$seed" ] || [ ! -f "$seed" ] || [ ! -x "$seed" ] \
+        || ! version_output=$(timeout 15 "$seed" --version) \
+        || [ "$version_output" != "$version (Claude Code)" ]; then
+        bashio::log.error "Claude seed at $seed is not a runnable native version; leaving $launcher unchanged. Check this file before retrying"
+        return 1
+    fi
+    if ! ln -sfn "$seed" "$launcher"; then
+        bashio::log.error "Cannot create Claude launcher at $launcher; check permissions in /data"
+        return 1
+    fi
+    bashio::log.info "Initialized native Claude launcher with persistent version $version"
+}
+
 # Initialize environment for Claude Code CLI using /data (HA best practice)
 init_environment() {
     # Use /data exclusively - guaranteed writable by HA Supervisor
@@ -66,16 +131,7 @@ init_environment() {
         echo 'export PATH="$HOME/.local/bin:/root/.local/bin:${PATH}"' >> /root/.bashrc
     fi
 
-    # Ensure Claude is available at $HOME/.local/bin
-    # Only create symlink to build-time binary as fallback — don't overwrite
-    # a version installed by the auto-updater (which persists in /data)
-    mkdir -p "$data_home/.local/bin"
-    if [ ! -e "$data_home/.local/bin/claude" ] && [ ! -L "$data_home/.local/bin/claude" ]; then
-        ln -sf /root/.local/bin/claude "$data_home/.local/bin/claude" 2>/dev/null || true
-        bashio::log.info "Created symlink to build-time Claude binary"
-    else
-        bashio::log.info "Using existing Claude binary at $data_home/.local/bin/claude"
-    fi
+    bootstrap_claude_launcher
 
     # Configure Claude Code's built-in background auto-updater.
     # The native install keeps itself current in the background while running and
