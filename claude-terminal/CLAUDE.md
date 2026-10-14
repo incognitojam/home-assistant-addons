@@ -21,7 +21,6 @@ You are running inside the **Claude Code** add-on for Home Assistant. This is a 
 ### Environment Variables
 ```bash
 HOME=/data/home                          # User home directory
-ANTHROPIC_CONFIG_DIR=/data/.config/claude  # Claude credentials
 XDG_CONFIG_HOME=/data/.config            # Configuration files
 XDG_CACHE_HOME=/data/.cache              # Cache directory
 XDG_STATE_HOME=/data/.local/state        # State files
@@ -48,7 +47,8 @@ HASSIO_TOKEN                             # Legacy alias for SUPERVISOR_TOKEN
 - **Purpose**: Add-on specific data storage
 - **Access**: Read/Write
 - **Contents**:
-  - `.config/claude/` - Claude authentication files
+  - `home/.claude/` - Claude credentials (`.credentials.json`) and user settings (`settings.json`)
+  - `home/.claude.json` - Claude onboarding and global configuration
   - `.cache/` - Temporary cache files
   - `.local/` - Application state
 - **Persistence**: Survives container restarts
@@ -223,13 +223,13 @@ Common YAML issues:
 ### Authentication Issues with Claude
 ```bash
 # Check credential files
-ls -la /data/.config/claude/
+ls -la /data/home/.claude/
 
 # Re-authenticate if needed
 claude
 
 # View credential locations
-echo $ANTHROPIC_CONFIG_DIR
+echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 ```
 
 ### Network and Connectivity
@@ -247,7 +247,7 @@ echo $ANTHROPIC_CONFIG_DIR
 ### File Permissions
 ```bash
 # Credential files should be restricted
-chmod 600 /data/.config/claude/*
+chmod 600 /data/home/.claude/.credentials.json
 
 # Configuration files typically 644
 chmod 644 /config/configuration.yaml
@@ -317,7 +317,7 @@ After editing, validate with `ha core check`, then restart and monitor logs.
 | Automations | `/config/automations.yaml` |
 | Secrets | `/config/secrets.yaml` |
 | Custom Components | `/config/custom_components/` |
-| Claude Credentials | `/data/.config/claude/` |
+| Claude Credentials | `/data/home/.claude/.credentials.json` |
 | Add-on Scripts | `/opt/scripts/` |
 
 ---

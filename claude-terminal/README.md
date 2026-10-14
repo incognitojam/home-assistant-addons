@@ -62,7 +62,7 @@ claude-logout
 The add-on requires no configuration. All settings are handled automatically:
 
 - **Port**: Web interface runs on port 7681
-- **Authentication**: OAuth with Anthropic (credentials stored securely in `/data/.config/claude/`)
+- **Authentication**: OAuth with Anthropic (credentials stored securely in `/data/home/.claude/.credentials.json`)
 - **Terminal**: Full bash environment with Claude Code CLI pre-installed
 - **Volumes**: Access to both `/config` (Home Assistant) and `/addons` (for development)
 

@@ -57,8 +57,7 @@ RUN HA_ARCH=$(cat /tmp/ha_arch) && \
     && chmod a+x /usr/bin/ha \
     && rm /tmp/ha_arch
 
-# Create directory for Claude configuration and set working directory
-RUN mkdir -p /config/claude-config
+# Set working directory to the runtime Home Assistant configuration mount
 WORKDIR /config
 
 # Copy startup script, modular scripts, and Claude context documentation

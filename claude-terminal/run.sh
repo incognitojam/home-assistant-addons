@@ -40,18 +40,17 @@ init_environment() {
     local config_dir="/data/.config"
     local cache_dir="/data/.cache"
     local state_dir="/data/.local/state"
-    local claude_config_dir="/data/.config/claude"
 
     bashio::log.info "Initializing Claude Code environment in /data..."
 
     # Create all required directories
-    if ! mkdir -p "$data_home" "$config_dir/claude" "$cache_dir" "$state_dir" "/data/.local"; then
+    if ! mkdir -p "$data_home" "$config_dir" "$cache_dir" "$state_dir" "/data/.local"; then
         bashio::log.error "Failed to create directories in /data"
         exit 1
     fi
 
     # Set permissions
-    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir"
+    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir"
 
     # Set XDG and application environment variables
     export HOME="$data_home"
@@ -78,10 +77,6 @@ init_environment() {
         bashio::log.info "Using existing Claude binary at $data_home/.local/bin/claude"
     fi
 
-    # Claude-specific environment variables
-    export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
-    export ANTHROPIC_HOME="/data"
-
     # Configure Claude Code's built-in background auto-updater.
     # The native install keeps itself current in the background while running and
     # switches to the new version on the next launch, so there is no need to
@@ -97,13 +92,9 @@ init_environment() {
         bashio::log.info "Claude auto-update: disabled (DISABLE_AUTOUPDATER=1)"
     fi
 
-    # Migrate any existing authentication files from legacy locations
-    migrate_legacy_auth_files "$claude_config_dir"
-
     bashio::log.info "Environment initialized:"
     bashio::log.info "  - Home: $HOME"
     bashio::log.info "  - Config: $XDG_CONFIG_HOME"
-    bashio::log.info "  - Claude config: $ANTHROPIC_CONFIG_DIR"
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
 }
 
@@ -157,50 +148,6 @@ configure_permission_mode() {
     if [ "$mode" = "auto" ]; then
         export CLAUDE_CODE_ENABLE_AUTO_MODE=1
         bashio::log.info "Auto mode opt-in enabled (CLAUDE_CODE_ENABLE_AUTO_MODE=1)"
-    fi
-}
-
-# One-time migration of existing authentication files
-migrate_legacy_auth_files() {
-    local target_dir="$1"
-    local migrated=false
-
-    bashio::log.info "Checking for existing authentication files to migrate..."
-
-    # Check common legacy locations
-    local legacy_locations=(
-        "/root/.config/anthropic"
-        "/root/.anthropic" 
-        "/config/claude-config"
-        "/tmp/claude-config"
-    )
-
-    for legacy_path in "${legacy_locations[@]}"; do
-        if [ -d "$legacy_path" ] && [ "$(ls -A "$legacy_path" 2>/dev/null)" ]; then
-            bashio::log.info "Migrating auth files from: $legacy_path"
-            
-            # Copy files to new location
-            if cp -r "$legacy_path"/* "$target_dir/" 2>/dev/null; then
-                # Set proper permissions
-                find "$target_dir" -type f -exec chmod 600 {} \;
-                
-                # Create compatibility symlink if this is a standard location
-                if [[ "$legacy_path" == "/root/.config/anthropic" ]] || [[ "$legacy_path" == "/root/.anthropic" ]]; then
-                    rm -rf "$legacy_path"
-                    ln -sf "$target_dir" "$legacy_path"
-                    bashio::log.info "Created compatibility symlink: $legacy_path -> $target_dir"
-                fi
-                
-                migrated=true
-                bashio::log.info "Migration completed from: $legacy_path"
-            else
-                bashio::log.warning "Failed to migrate from: $legacy_path"
-            fi
-        fi
-    done
-
-    if [ "$migrated" = false ]; then
-        bashio::log.info "No existing authentication files found to migrate"
     fi
 }
 
@@ -262,8 +209,6 @@ setup_session_picker() {
     fi
 }
 
-# Legacy monitoring functions removed - using simplified /data approach
-
 # Determine Claude launch command based on configuration
 get_claude_launch_command() {
     local auto_launch_claude
@@ -296,7 +241,6 @@ start_web_terminal() {
     
     # Log environment information for debugging
     bashio::log.info "Environment variables:"
-    bashio::log.info "ANTHROPIC_CONFIG_DIR=${ANTHROPIC_CONFIG_DIR}"
     bashio::log.info "HOME=${HOME}"
 
     # Get the appropriate launch command based on configuration
