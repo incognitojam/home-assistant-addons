@@ -1,0 +1,63 @@
+name: Publish tested add-on
+
+on:
+  workflow_call:
+    inputs:
+      targets:
+        description: Nonempty JSON list of missing tags for one validated add-on
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_OWNER: incognitojam
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.addon }} ${{ matrix.version }} (${{ matrix.arch }})
+    if: >-
+      !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+      inputs.targets != '' && inputs.targets != '[]'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: publish-${{ matrix.addon }}-${{ matrix.arch }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.targets || '[]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download tested image
+        uses: actions/download-artifact@v8
+        with:
+          name: image-${{ matrix.addon }}-${{ matrix.arch }}
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GHCR_TOKEN}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Push image
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.arch }}-${{ matrix.addon }}:${{ matrix.version }}
+        run: |
+          # Check again: another run may have published this version meanwhile.
+          state="$(.github/scripts/ghcr-tag-state.sh "${IMAGE_OWNER}/${{ matrix.arch }}-${{ matrix.addon }}" "${{ matrix.version }}")"
+          if [[ "${state}" == present ]]; then
+            echo "::notice::${IMAGE} already exists; not overwriting it"
+            exit 0
+          fi
+          docker load --input image.tar
+          docker image inspect --format 'Image ID: {{.Id}}' local/${{ matrix.addon }}:${{ matrix.arch }}
+          docker tag local/${{ matrix.addon }}:${{ matrix.arch }} "${IMAGE}"
+          docker push "${IMAGE}"
+          echo "Published \`${IMAGE}\`" >> "${GITHUB_STEP_SUMMARY}"

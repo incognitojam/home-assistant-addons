@@ -1,0 +1,205 @@
+name: Validate add-on
+
+on:
+  workflow_call:
+    inputs:
+      addon:
+        required: true
+        type: string
+      keys:
+        description: JSON list of add-on/architecture keys with missing tags
+        type: string
+        default: '[]'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Docker Image
+    # Keep both architectures on Ubuntu 24.04 for Playwright system dependencies.
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, aarch64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Read app metadata
+        id: addon
+        run: |
+          field() {
+            awk -F': *' -v key="$1" '$1 == key { sub(/^[^:]*: */, ""); gsub(/^"|"$/, ""); print; exit }' "${{ inputs.addon }}/config.yaml"
+          }
+          {
+            echo "version=$(field version)"
+            echo "name=$(field name)"
+            echo "description=$(field description)"
+            echo "url=$(field url)"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./${{ inputs.addon }}
+          file: ./${{ inputs.addon }}/Dockerfile
+          platforms: ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }}
+          push: false
+          load: true
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:3.22
+            BUILD_ARCH=${{ matrix.arch }}
+            BUILD_VERSION=${{ steps.addon.outputs.version }}
+          tags: local/${{ inputs.addon }}:${{ matrix.arch }}
+          # Supervisor adds these labels when it builds locally; a prebuilt
+          # image has to carry them itself. The source label links the GHCR
+          # package to this repository.
+          labels: |
+            io.hass.name=${{ steps.addon.outputs.name }}
+            io.hass.description=${{ steps.addon.outputs.description }}
+            io.hass.url=${{ steps.addon.outputs.url }}
+            io.hass.version=${{ steps.addon.outputs.version }}
+            io.hass.arch=${{ matrix.arch }}
+            io.hass.type=app
+            org.opencontainers.image.title=${{ steps.addon.outputs.name }}
+            org.opencontainers.image.description=${{ steps.addon.outputs.description }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.addon.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Test Codex daemon startup
+        if: inputs.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --interactive --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint /bin/bash \
+            --env HOME=/data/home \
+            --env CODEX_HOME=/data/.codex \
+            --env CODEX_SQLITE_HOME=/data/.codex \
+            local/codex-terminal:${{ matrix.arch }} \
+            -s < codex-terminal/tests/daemon-startup.sh
+
+      - name: Test Codex context installation
+        if: inputs.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --interactive --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint /bin/bash \
+            --env CODEX_HOME=/data/.codex \
+            local/codex-terminal:${{ matrix.arch }} \
+            -s < codex-terminal/tests/context-install.sh
+
+      - name: Test Codex approval defaults
+        if: inputs.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint node \
+            --env HOME=/data/home \
+            --env CODEX_HOME=/data/.codex \
+            --env CODEX_SQLITE_HOME=/data/.codex \
+            --volume "${PWD}/codex-terminal/tests:/tests:ro" \
+            local/codex-terminal:${{ matrix.arch }} \
+            --test /tests/approval-defaults.test.mjs
+
+      # Native runners exercise both add-on architectures with Chromium and WebKit.
+      - name: Set up Node.js for e2e tests
+        if: inputs.addon == 'claude-terminal'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: claude-terminal/tests/package-lock.json
+
+      - name: Install e2e test dependencies
+        if: inputs.addon == 'claude-terminal'
+        working-directory: claude-terminal/tests
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+
+      - name: Test claude-terminal end to end
+        if: inputs.addon == 'claude-terminal'
+        timeout-minutes: 10
+        working-directory: claude-terminal/tests
+        env:
+          IMAGE: local/claude-terminal:${{ matrix.arch }}
+        run: npm test -- --grep-invert @network
+
+      # Kept separate so a failure that depends on reaching Anthropic's API
+      # is easy to tell apart from a broken image.
+      - name: Test claude-terminal end to end (network)
+        if: inputs.addon == 'claude-terminal'
+        timeout-minutes: 5
+        working-directory: claude-terminal/tests
+        env:
+          IMAGE: local/claude-terminal:${{ matrix.arch }}
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/network
+        run: npm test -- --grep @network --output test-results/network
+
+      # The publish job pushes this exact tested image, not a rebuild.
+      - name: Save image for publishing
+        if: >-
+          github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+          contains(fromJSON(inputs.keys || '[]'), format('{0}/{1}', inputs.addon, matrix.arch))
+        run: |
+          docker image inspect --format 'Image ID: {{.Id}}' local/${{ inputs.addon }}:${{ matrix.arch }}
+          docker save --output image.tar local/${{ inputs.addon }}:${{ matrix.arch }}
+
+      - name: Upload image for publishing
+        if: >-
+          github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+          contains(fromJSON(inputs.keys || '[]'), format('{0}/{1}', inputs.addon, matrix.arch))
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-${{ inputs.addon }}-${{ matrix.arch }}
+          path: image.tar
+          compression-level: 1
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload e2e test artifacts
+        if: failure() && inputs.addon == 'claude-terminal'
+        uses: actions/upload-artifact@v7
+        with:
+          name: claude-terminal-e2e-results-${{ matrix.arch }}
+          path: |
+            claude-terminal/tests/test-results/
+            claude-terminal/tests/playwright-report/
+          retention-days: 14
+
+  hadolint:
+    name: Hadolint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run hadolint
+        run: |
+          docker run --rm \
+            --volume "${PWD}:/repo:ro" \
+            --workdir /repo \
+            ghcr.io/hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d \
+            hadolint "${{ inputs.addon }}/Dockerfile"
+
+  validation:
+    name: Require both architectures and lint
+    needs: [build, hadolint]
+    if: always()
+    runs-on: ubuntu-slim
+    steps:
+      - name: Require every job to succeed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")'
