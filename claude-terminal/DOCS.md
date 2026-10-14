@@ -56,7 +56,7 @@ Claude can read and change your live HA configuration and use HA APIs. Back up b
 
 - `/config` is your **live Home Assistant configuration**, mounted read/write, and the terminal's working directory.
 - `/data/home` is the persistent terminal home. Claude credentials, settings, and conversation data live under `/data/home/.claude`; onboarding and global configuration live in `/data/home/.claude.json`.
-- Claude's runtime launcher and native updates use `/data/home/.local`. Authentication and installed updates survive add-on restarts through the `/data` volume.
+- Claude's launcher is `/data/home/.local/bin/claude`, linked directly to a native executable under `/data/.local/share/claude/versions/`. The bundled executable is copied there once on first start. Authentication and installed updates survive add-on restarts through the `/data` volume.
 
 ### Home Assistant context
 
@@ -78,6 +78,6 @@ Review edits before applying them. From the shell, `ha core check` validates HA 
 - **Terminal will not load:** check that the add-on is running and inspect its **Logs** tab. Use ingress; a host port is unnecessary.
 - **Sign-in or API errors:** follow Claude's login prompts and check internet connectivity. From the shell, `claude auth --help` shows the installed CLI's authentication commands. Authentication belongs to Claude, not a separate add-on helper.
 - **Unexpected permission mode:** confirm the option, save, and restart; inspect the add-on logs for the selected mode or a settings-write warning. Startup reapplies the configured default.
-- **Claude version does not change:** check `auto_update_claude` and the startup log. The native updater runs in the background; an update takes effect on the next Claude launch.
+- **Claude version does not change:** check `auto_update_claude` and the startup log. The native updater runs in the background; after it installs an update, exit Claude with `/exit` and reconnect to start the new version. Refreshing alone resumes the running version. Run `claude --version` and `claude doctor` from the shell to check the selected version and installation health. Older add-on launchers are migrated to the bundled version once; Claude then selects updates according to its configured release channel. An already downloaded newer file is not automatically selected during migration, and disabling auto-update keeps the selected version.
 
 For add-on problems, use the [repository issue tracker](https://github.com/incognitojam/home-assistant-addons/issues). Include relevant logs without credentials or tokens.
