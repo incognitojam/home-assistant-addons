@@ -95,7 +95,10 @@ test('mouse drag selects text in the browser', async ({ page }) => {
 // Claude reads as prompt history; in the normal screen it scrolls. tmux must
 // also scroll with linefeeds for lines to be kept as scrollback at all.
 test('the wheel scrolls the browser scrollback', async ({ page }) => {
-    await typeLine(page, 'seq 1 300');
+    // Pace output so tmux renders it incrementally: a single burst can skip
+    // frames and leave only its last screen in browser scrollback. This tests
+    // linefeed retention and wheel scrolling, not burst redraw scheduling.
+    await typeLine(page, 'for batch in $(seq 0 29); do seq $((batch * 10 + 1)) $((batch * 10 + 10)); sleep 0.1; done');
     await waitForText(page, /^300$/m);
     const buffer = await page.evaluate(() => ({ type: window.term.buffer.active.type, baseY: window.term.buffer.active.baseY, rows: window.term.rows }));
     expect(buffer.type).toBe('normal');
