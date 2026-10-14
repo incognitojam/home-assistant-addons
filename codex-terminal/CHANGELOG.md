@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.27
+
+### Improvements
+- Installs and updates now download a ready-built image instead of building on your Home Assistant device, saving time and avoiding build failures on small devices.
+
 ## 0.2.26
 
 ### Fixes

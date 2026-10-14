@@ -76,13 +76,15 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 ## Conventions
 
 - Commit and PR titles use Scoped Commits with the add-on as the scope, for example `claude-terminal: <description>` or `codex-terminal: <description>`. Repository-wide changes use `docs:` or `ci:`.
-- A release bumps `version` in the add-on's `config.yaml` and adds a matching section to its `CHANGELOG.md`. Merging it to `main` publishes that version's images. Changes can land on `main` between releases, and one release can cover several of them. Never reuse a version: its images are already published. For codex-terminal, also keep `ARG BUILD_VERSION` in the `Dockerfile` in step with the version.
+- A release bumps `version` in the add-on's `config.yaml` and adds a matching section to its `CHANGELOG.md`. Merging a version bump to `main` publishes that version's images, and Home Assistant pulls `image:<version>`. Releases are what ship: changes merged without a version bump don't reach users, and one release can cover several changes. Never reuse a version: its images are already published. For codex-terminal, also keep `ARG BUILD_VERSION` in the `Dockerfile` in step with the version.
 - Add-on scripts start with `#!/usr/bin/with-contenv bashio` and report through `bashio::log.*`.
 - Indent shell with 4 spaces and YAML with 2 spaces.
 - Put option defaults in `config.yaml`, and their user-facing names and descriptions in `translations/en.yaml`.
 
 ## Gotchas
 
+- `config.yaml`'s `image:` key makes Supervisor pull a prebuilt image; without it, Supervisor builds from source. Local Docker builds still work for development.
+- After a release merges, publishing takes a few minutes. Users who update before the image exists get a pull error until publishing finishes.
 - `bashio::config` reads options from the Supervisor API, not `/data/options.json`. Without a Supervisor, or if the API call fails, it returns nothing, which is why `get_addon_option` exists.
 - Claude Code's native install: the image bakes the binary at `/root/.local/bin/claude`, and `run.sh` links `/data/home/.local/bin/claude` to it only when no link exists yet. Claude's own background updater writes new versions to `/data/.local/share/claude/versions/` and repoints that link, so updates persist in `/data`. `auto_update_claude` toggles the updater through `DISABLE_AUTOUPDATER`. Don't run `https://claude.ai/install.sh` at startup: it always re-downloads the full binary of about 215 MB.
 - On Alpine (musl), Claude Code needs `USE_BUILTIN_RIPGREP=0` and the system `ripgrep` package.

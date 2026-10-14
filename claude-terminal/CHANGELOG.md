@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.1
+
+### 🛠️ Improvements
+- **Faster installs and updates**: Download a ready-built image instead of building on your Home Assistant device, saving time and avoiding build failures on small devices.
+
 ## 1.9.0
 
 ### 🛠️ Improvements
