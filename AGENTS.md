@@ -65,8 +65,9 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 
 ## CI
 
-- `.github/workflows/build.yml` builds each add-on for amd64 and aarch64 (aarch64 under QEMU). For codex-terminal it runs `tests/daemon-startup.sh` and `tests/approval-defaults.test.mjs` inside the image. For claude-terminal it runs the e2e tests on amd64 only, with the `@network` test as a separate step.
-- `.github/workflows/lint.yml` runs hadolint v2.15.1 on both Dockerfiles.
+- `.github/workflows/build.yml` builds each add-on for amd64 on `ubuntu-24.04` and aarch64 on native `ubuntu-24.04-arm` runners. For codex-terminal it runs `tests/daemon-startup.sh`, `tests/context-install.sh` and `tests/approval-defaults.test.mjs` inside the image. For claude-terminal it runs the e2e tests on both architectures, with the `@network` test as a separate step.
+- The same workflow runs hadolint v2.15.1 on both Dockerfiles.
+- The aggregate `CI` job runs on `ubuntu-slim` and is the required check. It fails unless every build and hadolint job succeeds.
 
 ## Conventions
 
