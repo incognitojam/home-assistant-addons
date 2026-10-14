@@ -1,5 +1,5 @@
 import { test, expect } from '../lib/fixtures.mjs';
-import { openTerminal, screenText, waitForText } from '../lib/terminal.mjs';
+import { cellCenter, openTerminal, screenText, waitForText } from '../lib/terminal.mjs';
 
 // These check that the Claude binary in the image starts (catching e.g. a
 // musl/glibc mismatch), not Claude's UI, so the patterns are deliberately
@@ -45,3 +45,78 @@ test('auto-launched Claude reaches its first-run onboarding', { tag: '@network' 
         message: 'Claude onboarding (theme picker or login) in the terminal',
     });
 });
+
+// Signing in means opening Claude's long OAuth URL, which wraps over several
+// rows, and pasting back a code. Claude marks every row with an OSC 8 link to
+// the whole URL, and tmux must pass it through so that clicking any row opens
+// the complete URL. Stops at the paste prompt with a made-up code.
+test('the login URL opens in full from every wrapped row and a pasted code reaches Claude', { tag: '@network' }, async ({ page, terminalUrl }) => {
+    // Record what xterm.js would open instead of opening it.
+    await page.addInitScript(() => {
+        window.e2eOpened = [];
+        window.open = () => ({ opener: null, location: { set href(url) { window.e2eOpened.push(url); } } });
+    });
+    const prompts = [];
+    page.on('dialog', dialog => {
+        prompts.push(dialog.message());
+        dialog.accept();
+    });
+
+    await openTerminal(page, terminalUrl);
+    const [first] = await waitForText(page, /text style|select login method/i, {
+        timeout: 45_000,
+        message: 'Claude onboarding (theme picker or login method)',
+    });
+    if (/text style/i.test(first)) await pressKey(page, 'Enter');
+    await waitForText(page, /select login method/i, { message: 'the login method choice' });
+
+    // Move the highlight to the subscription option by its label.
+    const [, highlighted] = await waitForText(page, /❯\s*(\d+)\./);
+    const [, wanted] = await waitForText(page, /(\d+)\.\s*Claude account with subscription/);
+    for (let i = Number(highlighted); i < Number(wanted); i++) await pressKey(page, 'ArrowDown');
+    await pressKey(page, 'Enter');
+    await waitForText(page, /paste code here/i, { timeout: 30_000, message: 'the login URL and paste prompt' });
+
+    const rows = await page.evaluate(() => {
+        const buffer = window.term.buffer.active;
+        const rows = [];
+        for (let row = 0; row < window.term.rows; row++) {
+            const text = buffer.getLine(buffer.viewportY + row).translateToString(true).trim();
+            if (rows.length ? text : text.startsWith('https://')) rows.push({ row, text });
+            else if (rows.length) break;
+        }
+        return rows;
+    });
+    const url = rows.map(({ text }) => text).join('');
+    expect(rows.length, 'the login URL wraps over several rows').toBeGreaterThan(1);
+    const parsed = new URL(url);
+    expect(parsed.pathname).toMatch(/\/oauth\/authorize$/);
+    for (const param of ['client_id', 'redirect_uri', 'code_challenge', 'state']) {
+        expect(parsed.searchParams.get(param), `login URL parameter ${param}`).toBeTruthy();
+    }
+
+    expect(await page.evaluate(() => window.term.modes.mouseTrackingMode), 'mouse left to the browser for selecting').toBe('none');
+    for (const { row } of rows) {
+        const { x, y } = await cellCenter(page, { row, col: 5 });
+        await page.mouse.move(x, y);
+        // xterm.js shows a pointer cursor over a link.
+        await expect(page.locator('.xterm-cursor-pointer'), `row ${row} of the login URL to be a link`).toHaveCount(1);
+        await page.mouse.click(x, y);
+        await expect.poll(() => page.evaluate(() => window.e2eOpened.splice(0)), {
+            message: `clicking row ${row} of the login URL to open it`,
+        }).toEqual([url]);
+    }
+    expect(prompts, 'xterm.js asks before opening each OSC 8 link').toHaveLength(rows.length);
+    expect(prompts.every(prompt => prompt.includes(url)), 'every prompt names the full URL').toBe(true);
+
+    // Claude may mask the code, so compare its length, not its text.
+    const code = 'e2e-synthetic-code-0123456789';
+    await page.evaluate(code => window.term.paste(code), code);
+    const [, entered] = await waitForText(page, /paste code here if prompted > (\S+)/i, { message: 'the pasted code in the prompt' });
+    expect(entered).toHaveLength(code.length);
+});
+
+async function pressKey(page, key) {
+    await page.evaluate(() => window.term.focus());
+    await page.keyboard.press(key);
+}
