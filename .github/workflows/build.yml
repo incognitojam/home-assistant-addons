@@ -3,16 +3,12 @@ name: Build
 on:
   push:
     branches: [main]
-    paths:
-      - "claude-terminal/**"
-      - "codex-terminal/**"
-      - ".github/workflows/build.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "claude-terminal/**"
-      - "codex-terminal/**"
-      - ".github/workflows/build.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -133,3 +129,36 @@ jobs:
             claude-terminal/tests/test-results/
             claude-terminal/tests/playwright-report/
           retention-days: 14
+
+  hadolint:
+    name: Hadolint
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - claude-terminal/Dockerfile
+          - codex-terminal/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run hadolint
+        run: |
+          docker run --rm \
+            --volume "${PWD}:/repo:ro" \
+            --workdir /repo \
+            ghcr.io/hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d \
+            hadolint "${{ matrix.dockerfile }}"
+
+  ci:
+    name: CI
+    needs: [build, hadolint]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every job to succeed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")'
