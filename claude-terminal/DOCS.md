@@ -1,164 +1,69 @@
-# Claude Code Home Assistant Add-on Documentation
+# Claude Code for Home Assistant
 
-## Overview
+## Getting started
 
-Claude Code provides a web-based terminal interface with Claude Code CLI pre-installed, allowing you to access Claude's powerful AI capabilities directly from your Home Assistant dashboard. Claude Code is an AI coding assistant by Anthropic that can help you with Home Assistant configuration, automation creation, debugging, and general coding tasks.
+1. In Home Assistant, open **Settings → Apps → App Store** (called **Add-ons** on older versions).
+2. Open the three-dot menu, choose **Repositories**, and add `https://github.com/incognitojam/home-assistant-addons`.
+3. Install **Claude Code**, start it, and select **OPEN WEB UI** or its sidebar panel.
+4. Follow Claude's onboarding and sign-in prompts in the terminal, opening the login link in your browser when asked. Authentication is handled by Claude itself.
 
-## Features
+The terminal starts in `/config` and launches Claude by default. The add-on gives Claude Home Assistant-specific context and includes the Home Assistant CLI. To use a plain shell, disable `auto_launch_claude`, save, restart the add-on, and choose **Drop to bash shell**.
 
-- **Web Terminal**: Access a full terminal environment via your browser
-- **Auto-Launching**: Claude starts automatically when you open the terminal
-- **Claude AI**: Access Claude's AI capabilities for programming, troubleshooting and more
-- **Direct Config Access**: Terminal starts in `/config` for immediate access to all Home Assistant files
-- **Simple Setup**: Uses OAuth for easy authentication
-- **Home Assistant Integration**: Access directly from your dashboard
+## Options
 
-## Installation
+Set these in the add-on's **Configuration** tab, then save and restart:
 
-Follow these steps to install the add-on:
+| Option | Default | Behaviour |
+|--------|---------|-----------|
+| `auto_launch_claude` | `true` | Launch Claude whenever a terminal opens. When disabled, show the session picker. |
+| `auto_update_claude` | `true` | Enable Claude's native background updater; a downloaded version takes effect on the next Claude launch. Disabling sets `DISABLE_AUTOUPDATER=1`; it does not roll back a version already installed in persistent storage. |
+| `permission_mode` | `auto` | Set Claude's `permissions.defaultMode` at add-on startup for automatic, picker, and manual launches. Choose `auto`, `acceptEdits`, `default`, or `plan`. |
 
-1. Navigate to your Home Assistant instance
-2. Go to Settings -> Add-ons -> Add-on Store
-3. Click the three dots in the top right corner and select "Repositories"
-4. Add the URL of this repository and click "Add"
-5. Find the "Claude Code" add-on and click on it
-6. Click "Install"
+Permission modes: `auto` uses an AI classifier to approve or deny actions; `acceptEdits` automatically accepts file edits; `default` prompts before risky actions; `plan` is read-only planning. The add-on opts into auto mode, and availability depends on your Claude account/model. Use `default` if you prefer to approve actions yourself. **Shift+Tab** changes modes within a session.
 
-## Configuration
+## Session picker and shell
 
-No configuration is needed to get started! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
+With auto-launch disabled, the picker offers:
 
-Your OAuth credentials are stored in `/data/home/.claude/.credentials.json` and will persist across add-on updates and restarts, so you won't need to log in again.
+- **New interactive session (default)** — starts `claude`.
+- **Continue most recent conversation (-c)** — runs `claude -c` for the current directory.
+- **Resume from conversation list (-r)** — runs `claude -r` to select a saved conversation.
+- **Custom Claude command (manual flags)** — enter arguments only, such as `--help`.
+- **Drop to bash shell** — use the terminal without starting Claude.
+- **Exit** — ends the terminal session.
 
-Users upgrading from very old add-on versions with credentials only in `/config/claude-config` will need to log in again. The changelog dates the move to `/data` to version 1.2.0, so this primarily concerns pre-1.2.0 installations.
+From the shell, run `claude` for an interactive session, `claude --help` for CLI options, or `ha --help` for Home Assistant management commands.
 
-### Network access
+## Network and security
 
-Open the terminal through the Home Assistant sidebar panel or **OPEN WEB UI**. Home Assistant ingress handles access through your Home Assistant login; it does not require a host port. The terminal still listens on port 7681 inside the container, but the direct host port is disabled by default.
+Use the sidebar panel or **OPEN WEB UI** through Home Assistant ingress, protected by your Home Assistant login. No host port is required.
 
-For optional direct access, set a host port for `7681/tcp` in the add-on's **Network** settings, save, and restart the add-on. Leave that field empty to keep direct access disabled.
+The optional `7681/tcp` host port in **Network** settings is disabled by default. Enabling it exposes an **unauthenticated root terminal**, including your HA configuration and the add-on's manager-level Supervisor access; Claude sign-in does not protect the terminal. Existing installations keep saved ports across updates: clear any `7681/tcp` host port, save, and restart to disable direct access.
 
-**Warning:** Enabling the direct port exposes an unauthenticated root terminal to the network, including access to Home Assistant configuration and the add-on's manager-level Supervisor token. Anthropic OAuth authenticates Claude usage; it does not protect this terminal. Use the sidebar panel for normal access.
+Claude can read and change your live HA configuration and use HA APIs. Back up before major edits, review proposed changes, and avoid putting secrets into prompts unnecessarily.
 
-Existing installations retain saved Network settings across updates. If a host port is already configured, clear the `7681/tcp` field, save, and restart the add-on to disable direct access.
+## Persistent data
 
-### Options
+- `/config` is your **live Home Assistant configuration**, mounted read/write, and the terminal's working directory.
+- `/data/home` is the persistent terminal home. Claude credentials, settings, and conversation data live under `/data/home/.claude`; onboarding and global configuration live in `/data/home/.claude.json`.
+- Claude's runtime launcher and native updates use `/data/home/.local`. Authentication and installed updates survive add-on restarts through the `/data` volume.
 
-A few optional settings are available under the add-on's **Configuration** tab:
+## Home Assistant examples
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `permission_mode` | `auto` | The permission mode each Claude session starts in. Sets Claude Code's `permissions.defaultMode` — one of `auto`, `acceptEdits`, `default`, or `plan`. See [Choose a permission mode](https://code.claude.com/docs/en/permission-modes) for what each does. Switch anytime mid-session with **Shift+Tab**. |
-| `auto_launch_claude` | `true` | Start Claude automatically when the terminal opens. Disable to get an interactive session picker (new / continue / resume / shell) instead. |
-| `auto_update_claude` | `true` | Let Claude Code keep itself updated in the background via its native auto-updater. |
+Ask these in an interactive Claude session:
 
-The default, `auto`, uses Claude Code's AI permission classifier so sessions run with fewer prompts; it's a [research preview](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode) and needs a recent model (Opus 4.6+ or Sonnet 4.6+). If it isn't available for your account, Claude falls back to prompting. Prefer to approve each action yourself? Set `permission_mode` to `default`.
+- “Review my motion-light automation and suggest how to limit it to after sunset.”
+- “Explain the YAML validation error in my configuration and propose a minimal fix.”
+- “Help me draft a template sensor that averages these temperature entities.”
+- “Read this integration error and suggest diagnostic steps before changing anything.”
 
-## Usage
-
-The Claude Code CLI launches automatically when you open the terminal. You can interact with it using the following commands:
-
-### Common Commands
-
-- `claude -i` - Start an interactive Claude session
-- `claude --help` - See all available commands
-- `claude "your prompt"` - Ask Claude a single question
-- `claude process myfile.py` - Have Claude analyze a file
-- `claude --editor` - Start an interactive editor session
-
-All your files are stored in `/config/claude-code`, which persists between restarts.
-
-## Home Assistant-Specific Use Cases
-
-Claude Code is particularly useful for Home Assistant tasks. Here are some example uses:
-
-### 1. Automation Creation and Debugging
-
-```
-# Create a new automation
-claude "create an automation that turns on lights when motion is detected, but only if it's dark"
-
-# Debug an existing automation
-claude "why isn't my automation working? Here's the code: [paste automation code]"
-```
-
-### 2. YAML Configuration Help
-
-```
-# Get help with syntax
-claude "what's wrong with this YAML? [paste YAML]"
-
-# Create a new configuration
-claude "create a configuration for a zigbee device with these capabilities: [list capabilities]"
-```
-
-### 3. Entity Management
-
-```
-# Clean up entity names
-claude "suggest better names for these entities: [paste entity list]"
-
-# Create a template sensor
-claude "create a template sensor that averages these temperature sensors: [paste sensor IDs]"
-```
-
-### 4. Custom Component Development
-
-```
-# Create a new integration
-claude "help me create a custom integration for my smart coffee maker"
-
-# Debug integration issues
-claude "why is my custom component failing to load? Here's the error: [paste error]"
-```
+Review edits before applying them. From the shell, `ha core check` validates HA configuration; use `ha core logs` to inspect Core errors.
 
 ## Troubleshooting
 
-### Common Issues
+- **Terminal will not load:** check that the add-on is running and inspect its **Logs** tab. Use ingress; a host port is unnecessary.
+- **Sign-in or API errors:** follow Claude's login prompts and check internet connectivity. From the shell, `claude auth --help` shows the installed CLI's authentication commands. Authentication belongs to Claude, not a separate add-on helper.
+- **Unexpected permission mode:** confirm the option, save, and restart; inspect the add-on logs for the selected mode or a settings-write warning. Startup reapplies the configured default.
+- **Claude version does not change:** check `auto_update_claude` and the startup log. The native updater runs in the background; an update takes effect on the next Claude launch.
 
-1. **Authentication Issues**:
-   - If you're having trouble with OAuth login, try clearing your browser cookies
-   - Make sure you have a valid Anthropic account with billing enabled
-
-2. **Connection Problems**:
-   - Check your internet connection
-   - Verify the add-on can reach api.anthropic.com
-
-3. **Terminal Connection Issues**:
-   - If the terminal disconnects, try refreshing the page
-   - Check if the add-on is still running in Home Assistant
-
-### Logs
-
-Check the add-on logs for detailed information about any issues:
-
-1. Go to the add-on page in Home Assistant
-2. Click the "Logs" tab
-
-## Security Considerations
-
-Claude Code is designed with security in mind:
-
-- The add-on runs in an isolated container
-- Your code and queries go directly to Anthropic's API
-- Home Assistant ingress protects sidebar access with your Home Assistant login
-- Anthropic OAuth protects access to your Anthropic account; the optional direct terminal port has no authentication
-
-To further enhance security:
-- Log out when not actively using the terminal
-- Monitor the add-on logs for unusual activity
-- Keep your Anthropic account secure with a strong password
-
-## Support
-
-- For issues with the add-on itself, please open an issue on the GitHub repository
-- For Claude Code-specific issues, refer to the [Anthropic documentation](https://docs.anthropic.com/claude-code)
-- For billing or API questions, visit [Anthropic's support site](https://support.anthropic.com)
-
-## Credits
-
-This add-on was created with the assistance of Claude Code itself! The entire development process, debugging, and documentation were all completed using Claude's AI capabilities.
-
-## License
-
-This add-on is provided under the MIT License. Claude Code itself is subject to Anthropic's Commercial Terms of Service.
+For add-on problems, use the [repository issue tracker](https://github.com/incognitojam/home-assistant-addons/issues). Include relevant logs without credentials or tokens.
