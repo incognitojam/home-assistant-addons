@@ -260,12 +260,6 @@ setup_session_picker() {
     else
         bashio::log.warning "Session picker script not found, using auto-launch mode only"
     fi
-
-    # Setup authentication helper if it exists
-    if [ -f "/opt/scripts/claude-auth-helper.sh" ]; then
-        chmod +x /opt/scripts/claude-auth-helper.sh
-        bashio::log.info "Authentication helper script ready"
-    fi
 }
 
 # Legacy monitoring functions removed - using simplified /data approach
@@ -331,21 +325,9 @@ start_web_terminal() {
         bash -c "$launch_command"
 }
 
-# Run health check
-run_health_check() {
-    if [ -f "/opt/scripts/health-check.sh" ]; then
-        bashio::log.info "Running system health check..."
-        chmod +x /opt/scripts/health-check.sh
-        /opt/scripts/health-check.sh || bashio::log.warning "Some health checks failed but continuing..."
-    fi
-}
-
 # Main execution
 main() {
     bashio::log.info "Initializing Claude Code add-on..."
-
-    # Run diagnostics first (especially helpful for VirtualBox issues)
-    run_health_check
 
     init_environment
     configure_permission_mode

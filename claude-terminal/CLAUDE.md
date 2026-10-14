@@ -56,8 +56,6 @@ HASSIO_TOKEN                             # Legacy alias for SUPERVISOR_TOKEN
 
 #### `/opt/scripts` - Add-on Helper Scripts
 - `claude-session-picker.sh` - Interactive session picker
-- `claude-auth-helper.sh` - Authentication management
-- `health-check.sh` - System diagnostics
 
 ## Available Commands
 
@@ -228,7 +226,7 @@ Common YAML issues:
 ls -la /data/.config/claude/
 
 # Re-authenticate if needed
-claude-auth-helper.sh
+claude
 
 # View credential locations
 echo $ANTHROPIC_CONFIG_DIR
