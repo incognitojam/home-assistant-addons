@@ -1,181 +1,31 @@
 # Claude Code for Home Assistant
 
-A secure, web-based terminal with Claude Code CLI pre-installed for Home Assistant.
+Use Anthropic's Claude Code from a browser terminal in your Home Assistant dashboard to work on configuration, automations, and troubleshooting.
 
 ![Claude Code Screenshot](https://github.com/incognitojam/home-assistant-addons/raw/main/claude-terminal/screenshot.png)
 
-*Claude Code running in Home Assistant*
-
-## What is Claude Code?
-
-This add-on provides a web-based terminal interface with Claude Code CLI pre-installed, allowing you to use Claude's powerful AI capabilities directly from your Home Assistant dashboard. It gives you direct access to Anthropic's Claude AI assistant through a terminal, ideal for:
-
-- Writing and editing code
-- Debugging problems
-- Learning new programming concepts
-- Creating Home Assistant scripts and automations
-
 ## Features
 
-- **Web Terminal Interface**: Access Claude through a browser-based terminal using ttyd
-- **Auto-Launch**: Claude starts automatically when you open the terminal
-- **Latest Claude Code CLI**: Pre-installed with Anthropic's official CLI (@latest)
-- **No Configuration Needed**: Uses OAuth authentication for easy setup
-- **Direct Config Access**: Terminal starts in your `/config` directory for immediate access to all Home Assistant files
-- **Home Assistant Integration**: Access directly from your dashboard
-- **Panel Icon**: Quick access from the sidebar with a robot icon
-- **Multi-Architecture Support**: Works on amd64 and aarch64 platforms
-- **Secure Credential Management**: Persistent authentication with safe credential storage
-- **Automatic Recovery**: Built-in fallbacks and error handling for reliable operation
+- Browser terminal through Home Assistant ingress.
+- Pre-installed Claude Code with optional background updates.
+- Direct access to your live Home Assistant configuration in `/config`.
+- Automatic Claude launch or a picker for new sessions, saved conversations, and a bash shell.
+- Persistent Claude authentication and settings, with a configurable starting permission mode.
+- Home Assistant CLI (`ha`) and Home Assistant-specific context; supports `amd64` and `aarch64`.
 
-## Quick Start
+## Get started
 
-The terminal automatically starts Claude when you open it. You can immediately start using commands like:
+Install **Claude Code** from this repository in the Home Assistant store, start it, and open the web UI. Follow Claude's own sign-in prompts in the terminal.
 
-```bash
-# Ask Claude a question directly
-claude "How can I write a Python script to control my lights?"
+See the add-on's **Documentation** tab in Home Assistant, or [DOCS.md](DOCS.md), for:
 
-# Start an interactive session
-claude -i
+- Installation and sign-in.
+- Options and the session picker.
+- Network access, security, and persistent data.
+- Examples and troubleshooting.
 
-# Get help with available commands
-claude --help
+## Project
 
-# Debug authentication if needed
-claude-auth debug
+Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
-# Log out and re-authenticate
-claude-logout
-```
-
-## Installation
-
-1. Add this repository to your Home Assistant add-on store
-2. Install the Claude Code add-on
-3. Start the add-on
-4. Click "OPEN WEB UI" or the sidebar icon to access
-5. On first use, follow the OAuth prompts to log in to your Anthropic account
-
-## Configuration
-
-The add-on requires no configuration. All settings are handled automatically:
-
-- **Network**: Use the Home Assistant sidebar panel via ingress. The terminal listens on port 7681 inside the container; the optional direct host port is disabled by default.
-- **Authentication**: Home Assistant login for sidebar access; Anthropic OAuth for Claude usage (credentials stored in `/data/home/.claude/.credentials.json`).
-- **Terminal**: Full bash environment with Claude Code CLI pre-installed
-- **Volumes**: Access to both `/config` (Home Assistant) and `/addons` (for development)
-
-For optional direct access, set a host port for `7681/tcp` in the add-on's **Network** settings, save, and restart. Leave the field empty to disable it; the sidebar panel needs no host port.
-
-**Warning:** Enabling the direct port exposes an unauthenticated root terminal to the network, with access to Home Assistant configuration and the add-on's manager-level Supervisor token. Anthropic OAuth does not protect the terminal.
-
-Existing installations retain saved Network settings across updates. Clear any configured `7681/tcp` host port, save, and restart to disable direct access.
-
-## Troubleshooting
-
-### Authentication Issues
-If you have authentication problems:
-```bash
-claude-auth debug    # Show credential status
-claude-logout        # Clear credentials and re-authenticate
-```
-
-### Container Issues
-- Credentials are automatically saved and restored between restarts
-- Check add-on logs if the terminal doesn't load
-- Restart the add-on if Claude commands aren't recognized
-
-### Development
-For local development and testing:
-```bash
-# Build locally
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
-  -t local/claude-terminal:test ./claude-terminal
-
-# Run locally (bind the unauthenticated terminal to localhost only)
-docker run -p 127.0.0.1:7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
-
-# Lint and validate
-hadolint ./claude-terminal/Dockerfile
-
-# Test the web endpoint
-curl -I http://localhost:7681
-```
-
-## Architecture
-
-- **Base Image**: Home Assistant Alpine Linux base (3.22)
-- **Container Runtime**: Compatible with Docker/Podman
-- **Web Terminal**: ttyd for browser-based access
-- **Process Management**: s6-overlay for reliable service startup
-- **Networking**: Home Assistant ingress for sidebar access; optional unauthenticated direct host port disabled by default
-
-## Security
-
-Version 1.0.2 includes important security improvements:
-- ✅ **Secure Credential Management**: Limited filesystem access to safe directories only
-- ✅ **Safe Cleanup Operations**: No more dangerous system-wide file deletions
-- ✅ **Proper Permission Handling**: Consistent file permissions (600) for credentials
-- ✅ **Input Validation**: Enhanced error checking and bounds validation
-
-## Development Environment
-
-This add-on can be built and tested locally with Docker or Podman:
-
-```bash
-# Build the add-on container
-docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 \
-  -t local/claude-terminal:test ./claude-terminal
-
-# Run the add-on locally (bind the unauthenticated terminal to localhost only)
-docker run -p 127.0.0.1:7681:7681 -v /tmp/cc-config:/config local/claude-terminal:test
-
-# Lint the Dockerfile and test the web endpoint
-hadolint ./claude-terminal/Dockerfile
-
-# Test the web endpoint
-curl -I http://localhost:7681
-```
-
-**Requirements for development:**
-- Docker or Podman
-- Git
-- Optional: hadolint for Dockerfile linting
-
-## Documentation
-
-For detailed usage instructions, see the [documentation](DOCS.md).
-
-## Version History
-
-### v1.0.2 (Current) - Security & Bug Fix Release
-- 🔒 **CRITICAL**: Fixed dangerous filesystem operations
-- 🐛 Added missing armv7 architecture support
-- 🔧 Pinned NPM packages and improved error handling
-- 🛠️ Enhanced development environment with Podman support
-
-### v1.0.1
-- Improved credential management
-- Enhanced startup reliability
-
-### v1.0.0
-- Initial stable release
-- Web terminal interface with ttyd
-- Pre-installed Claude Code CLI
-- OAuth authentication support
-
-## Useful Links
-
-- [Claude Code Documentation](https://docs.anthropic.com/claude/docs/claude-code)
-- [Get an Anthropic API Key](https://console.anthropic.com/)
-- [Claude Code GitHub Repository](https://github.com/anthropics/claude-code)
-- [Home Assistant Add-ons](https://www.home-assistant.io/addons/)
-
-## Credits
-
-This add-on was created with the assistance of Claude Code itself! The development process, debugging, and documentation were all completed using Claude's AI capabilities - a perfect demonstration of what this add-on can help you accomplish.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+MIT licensed — see [LICENSE](../LICENSE). Created with assistance from Claude Code; Claude Code is made by Anthropic.
