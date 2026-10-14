@@ -61,4 +61,3 @@ jobs:
           docker tag local/${{ matrix.addon }}:${{ matrix.arch }} "${IMAGE}"
           docker push "${IMAGE}"
           echo "Published \`${IMAGE}\`" >> "${GITHUB_STEP_SUMMARY}"
-
