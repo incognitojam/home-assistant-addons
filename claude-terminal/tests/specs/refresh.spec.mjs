@@ -13,6 +13,9 @@ test('page reload reattaches to the running session with its output', async ({ p
     // seeing them after the reload means the history was replayed, not just
     // the visible screen redrawn.
     await typeLine(page, 'for i in $(seq 200); do echo "history-line-$i"; done');
+    // Wait for the prompt before typing again: while the loop runs, the tty
+    // echoes typeahead into its output (such as the "e" of the next "echo").
+    await waitForText(page, /^history-line-200\n.*[#$]$/m, { message: 'bash prompt after the loop' });
     await typeLine(page, 'echo "session-pid=$$"');
     const [, pid] = await waitForText(page, /^session-pid=(\d+)$/m);
 
@@ -47,10 +50,11 @@ test('the session follows the browser size', async ({ page, terminalUrl, addon }
         await page.setViewportSize(size);
         await expect.poll(() => page.evaluate(() => window.term.cols), { message: `xterm.js to refit at ${size.width}px` }).not.toBe(before);
         const cols = await page.evaluate(() => window.term.cols);
-        // ttyd sends the new size asynchronously; wait for tmux to apply it.
-        await expect.poll(async () => Number(await addon.exec('tmux', 'display-message', '-p', '#{window_width}')), {
-            message: `tmux window to resize to ${cols} columns`,
-        }).toBe(cols);
+        // ttyd sends the new size asynchronously, and tmux resizes the pane's
+        // tty some time after its window; wait until the shell's tty has it.
+        await expect.poll(() => addon.exec('sh', '-c', 'stty -F "$(tmux display-message -p "#{pane_tty}")" size').then(out => out.trim()), {
+            message: `shell's tty to resize to ${cols} columns`,
+        }).toMatch(new RegExp(`^\\d+ ${cols}$`));
         await typeLine(page, 'echo "size=$(stty size)"');
         await waitForText(page, new RegExp(`^size=\\d+ ${cols}$`, 'm'), { message: `shell to see ${cols} columns at ${size.width}px` });
     }
