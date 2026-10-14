@@ -1,0 +1,86 @@
+# AGENTS.md
+
+This repository is a Home Assistant add-on repository (`repository.yaml`) with two add-ons. Each serves a ttyd web terminal through Home Assistant ingress on port 7681 and starts a coding agent in `/config`:
+
+- `claude-terminal/` runs Anthropic's Claude Code, installed with the native installer.
+- `codex-terminal/` runs OpenAI's Codex CLI, installed from npm.
+
+## Layout
+
+Both add-ons have `config.yaml` (Supervisor manifest, options and defaults), `Dockerfile`, `run.sh` (startup), `DOCS.md` (the documentation Home Assistant shows), `README.md`, `CHANGELOG.md` and `translations/en.yaml` (option names and descriptions).
+
+- `claude-terminal/`
+  - `build.yaml` lists the per-arch base images.
+  - `scripts/` contains the session picker and the build-time ttyd index patch that adds mobile input hints.
+  - `tests/` contains the Playwright end-to-end tests.
+  - The options are `auto_launch_claude`, `auto_update_claude` and `permission_mode`.
+- `codex-terminal/`
+  - The `Dockerfile` pins its own multi-arch base image, the Codex release (`CODEX_RELEASE`) and `BUILD_VERSION`.
+  - `codex-auth-launcher.sh` is the login menu shown before Codex starts.
+  - `codex-defaults.toml` becomes `/etc/codex/config.toml`.
+  - `reset-codex-version.sh` removes a user-installed Codex override.
+  - `tests/` contains the daemon and approval-default checks that CI runs.
+  - It has no options.
+
+At runtime, `/config` is the user's live Home Assistant configuration (read-write) and `/data` is the add-on's private persistent storage. `HOME` is `/data/home`, and everything outside `/data` and `/config` is reset when the add-on restarts or updates. Both add-ons have `hassio_role: manager` and the pinned `ha` CLI (`CLI_VERSION`).
+
+Each add-on ships a context file for the agent that runs inside it. These files are written for end users' Home Assistant sessions, so don't follow them as instructions for working on this repository. One example is `codex-terminal/AGENTS.md`, which is installed as `/config/AGENTS.md`.
+
+## Build and run locally
+
+Use Docker; on macOS, OrbStack provides `docker`. For claude-terminal, build with the base image for your host's architecture (`aarch64-base` on Apple Silicon, `amd64-base` on Intel/AMD) so it runs natively:
+
+```bash
+docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.22 -t local/claude-terminal:test ./claude-terminal
+docker run -d --name claude-dev -p 127.0.0.1:7681:7681 \
+  -e AUTO_LAUNCH_CLAUDE=false -e AUTO_UPDATE_CLAUDE=false -e PERMISSION_MODE=default \
+  -v "$PWD/config/claude-data:/data" -v "$PWD/config/ha:/config" local/claude-terminal:test
+
+docker build -t local/codex-terminal:test ./codex-terminal   # ignores BUILD_FROM
+docker run -d --name codex-dev -p 127.0.0.1:7682:7681 \
+  -v "$PWD/config/codex-data:/data" -v "$PWD/config/ha:/config" local/codex-terminal:test
+```
+
+`config/` is git-ignored. Open http://localhost:7681 and check `docker logs <name>`. There is no Supervisor locally, so `ha` commands, `http://supervisor/...` calls and `bashio::config` all fail. claude-terminal reads its options through `get_addon_option` in `run.sh`: an environment override (`AUTO_LAUNCH_CLAUDE=true|false`, `AUTO_UPDATE_CLAUDE=true|false`, `PERMISSION_MODE=default|acceptEdits|auto|plan`) takes precedence, otherwise the default applies. If an override is unset, the log shows harmless "Failed to get addon config" errors.
+
+To lint the Dockerfiles, run the same hadolint version as CI:
+
+```bash
+docker run --rm -i ghcr.io/hadolint/hadolint:v2.15.1 < claude-terminal/Dockerfile
+```
+
+## End-to-end tests (claude-terminal)
+
+The Playwright tests in `claude-terminal/tests/` start their own container from a built image, on a free port, and remove it afterwards. They drive the web terminal directly, through an ingress-like proxy under `/api/hassio_ingress/<token>/`, and under phone emulation.
+
+```bash
+npm --prefix claude-terminal/tests ci
+npm --prefix claude-terminal/tests run install-browsers   # Chromium + WebKit, once
+IMAGE=local/claude-terminal:test npm --prefix claude-terminal/tests test
+# Skip the test that needs to reach Anthropic's API
+IMAGE=local/claude-terminal:test npm --prefix claude-terminal/tests test -- --grep-invert @network
+```
+
+On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, container logs, a screenshot and a trace (`npx playwright show-trace <trace.zip>`). The tests read the screen through ttyd's `window.term` and poll it with timeouts. Select session picker entries by label, not by number.
+
+## CI
+
+- `.github/workflows/build.yml` builds each add-on for amd64 and aarch64 (aarch64 under QEMU). For codex-terminal it runs `tests/daemon-startup.sh` and `tests/approval-defaults.test.mjs` inside the image. For claude-terminal it runs the e2e tests on amd64 only, with the `@network` test as a separate step.
+- `.github/workflows/lint.yml` runs hadolint v2.15.1 on both Dockerfiles.
+
+## Conventions
+
+- Commit and PR titles use Scoped Commits with the add-on as the scope, for example `claude-terminal: <description>` or `codex-terminal: <description>`. Repository-wide changes use `docs:` or `ci:`.
+- A release bumps `version` in the add-on's `config.yaml` and adds a matching section to its `CHANGELOG.md`. Changes can land on `main` between releases, and one release can cover several of them. For codex-terminal, also keep `ARG BUILD_VERSION` in the `Dockerfile` in step with the version.
+- Add-on scripts start with `#!/usr/bin/with-contenv bashio` and report through `bashio::log.*`.
+- Indent shell with 4 spaces and YAML with 2 spaces.
+- Put option defaults in `config.yaml`, and their user-facing names and descriptions in `translations/en.yaml`.
+
+## Gotchas
+
+- `bashio::config` reads options from the Supervisor API, not `/data/options.json`. Without a Supervisor, or if the API call fails, it returns nothing, which is why `get_addon_option` exists.
+- Claude Code's native install: the image bakes the binary at `/root/.local/bin/claude`, and `run.sh` links `/data/home/.local/bin/claude` to it only when no link exists yet. Claude's own background updater writes new versions to `/data/.local/share/claude/versions/` and repoints that link, so updates persist in `/data`. `auto_update_claude` toggles the updater through `DISABLE_AUTOUPDATER`. Don't run `https://claude.ai/install.sh` at startup: it always re-downloads the full binary of about 215 MB.
+- On Alpine (musl), Claude Code needs `USE_BUILTIN_RIPGREP=0` and the system `ripgrep` package.
+- Don't install a `$BROWSER` or `xdg-open` shim in claude-terminal. If Claude finds a browser opener, it uses its localhost OAuth callback, which the user's remote browser can't reach. Without one, it shows a login URL and asks the user to paste back the code.
+- codex-terminal prefers a Codex the user installed into `/data/npm` (`npm install -g`), as long as it passes `codex --version`. Otherwise it uses the bundled `/usr/local/bin/codex`.
+- ttyd starts a new process for each browser connection. Reloading the page ends the running session, and `tests/specs/refresh.spec.mjs` records that current behaviour.
