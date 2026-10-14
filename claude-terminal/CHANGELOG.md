@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.0
+
+### 🛠️ Improvements
+- **Terminal sessions survive refreshes and reconnects**: Reloading the page or reopening the terminal returns to the same running session with its recent output. All open tabs and devices share one session. Exit Claude (`/exit`) or the shell (`exit`), then reload to start a fresh session.
+
 ## 1.8.1
 
 ### 🛠️ Improvements
