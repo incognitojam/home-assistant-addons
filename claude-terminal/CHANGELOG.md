@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.2
+
+### 🐛 Bug Fixes
+- **Keep the final screen when a session exits**: Exiting Claude or the shell now leaves the final terminal output visible, including Claude's hint for resuming the session.
+
 ## 1.9.1
 
 ### 🛠️ Improvements
