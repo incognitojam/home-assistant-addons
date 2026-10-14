@@ -4,6 +4,7 @@
 
 ### 🐛 Bug Fixes
 - **Keep normal interactive Claude sessions in the classic renderer**: Disable fullscreen rendering and its startup offer to preserve browser scrolling and text selection, including when a fullscreen preference was previously saved.
+- **Activate downloaded Claude updates**: Fix the native updater so downloaded updates take effect after exiting Claude and starting a new session.
 
 ## 1.9.2
 
