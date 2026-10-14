@@ -161,37 +161,56 @@ install_tools() {
     bashio::log.info "Tools verified successfully"
 }
 
-# Install Claude context documentation to /config
+# Install the add-on's Home Assistant context for Claude.
+#
+# The file goes in Claude's user-level rules directory, which Claude loads in
+# every session. It lives in add-on private storage and belongs to the add-on,
+# so it is replaced on every start. /config/CLAUDE.md and ~/.claude/CLAUDE.md
+# are left to the user.
 install_claude_context() {
-    local source_file="/opt/CLAUDE.md"
-    local target_file="/config/CLAUDE.md"
+    local source_file="/opt/home-assistant-context.md"
+    local rules_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/rules"
+    local target_file="${rules_dir}/home-assistant.md"
 
-    # Check if source file exists
-    if [ -f "$source_file" ]; then
-        # Install or update CLAUDE.md in /config
-        if [ ! -f "$target_file" ]; then
-            bashio::log.info "Installing CLAUDE.md to /config for Claude context..."
-            if cp "$source_file" "$target_file"; then
-                chmod 644 "$target_file"
-                bashio::log.info "CLAUDE.md installed successfully"
-            else
-                bashio::log.warning "Failed to install CLAUDE.md, continuing anyway..."
-            fi
-        else
-            # Update if source is newer
-            if [ "$source_file" -nt "$target_file" ]; then
-                bashio::log.info "Updating CLAUDE.md in /config..."
-                if cp "$source_file" "$target_file"; then
-                    chmod 644 "$target_file"
-                    bashio::log.info "CLAUDE.md updated successfully"
-                else
-                    bashio::log.warning "Failed to update CLAUDE.md, continuing anyway..."
-                fi
-            fi
-        fi
+    if mkdir -p "$rules_dir" && cp "$source_file" "$target_file"; then
+        chmod 644 "$target_file" 2>/dev/null || true
     else
-        bashio::log.debug "No CLAUDE.md found in container, skipping installation"
+        bashio::log.warning "Could not install Home Assistant context to ${target_file}"
     fi
+
+    remove_legacy_claude_context
+}
+
+# Earlier versions copied their context file to /config/CLAUDE.md. Remove that
+# copy only if it is byte-identical to a version the add-on shipped, so it no
+# longer loads alongside the new context. A modified copy belongs to the user.
+remove_legacy_claude_context() {
+    local legacy_file="/config/CLAUDE.md"
+    local legacy_hash
+
+    [ -f "$legacy_file" ] || return 0
+    legacy_hash=$(sha256sum "$legacy_file" 2>/dev/null | cut -d ' ' -f1) || return 0
+
+    case "$legacy_hash" in
+        f506ca060ee1d35d20a12cce8f726e939acdb3906ab37345717dc2ba9065e62e | \
+        0d34bb34ceac87c85b311f5ab05b99bb5265d0ede033f5f6c5bef59457449447 | \
+        94f706d977f793d9544e0db9648940133e69c442c123849d601512017696e7e7 | \
+        20d7d885a51d4c655e974fc87074503499db090ed7b09310130c36b9ba7d5ad7 | \
+        5300121d13cbfe2f31acf2b6a5bc7450e6c5b10547ff52455baea233252ee21a | \
+        2658f4bd9c7b177923bd2e71661353872e0beb1f9bd0f509b2c9332c27c23093 | \
+        fd7b8656947d7702f6e6d858888975d1e16e393f0e1abe0e685b6461b77ce061 | \
+        ae50b64a39798879e2dfb4bcf1879b64d7b5e979e87f1ac7db5f37baf23d30dc | \
+        cd1100a200c0a4330a29453404676bc3ffc92b63a3fe4bf78539bc8450e0ff92 | \
+        7c955377b3b5ffce7ba2492b75a0149770f2e1826c8811f4c53fc063615c25ca | \
+        c171fabffe49e073d3137a443779972d94496ec2bcb8743f1d8cac67efbc1b33)
+            if rm -f "$legacy_file"; then
+                bashio::log.info "Removed unmodified /config/CLAUDE.md installed by an earlier add-on version"
+            fi
+            ;;
+        *)
+            bashio::log.info "Keeping /config/CLAUDE.md because it differs from the add-on's old copy; Claude loads it as project instructions"
+            ;;
+    esac
 }
 
 # Setup session picker script

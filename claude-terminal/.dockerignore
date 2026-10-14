@@ -1,3 +1,4 @@
-# Only run.sh, scripts/ and CLAUDE.md are copied into the image; keep the
-# end-to-end tests (and their node_modules) out of the build context.
+# Only run.sh, scripts/ and home-assistant-context.md are copied into the
+# image; keep the end-to-end tests (and their node_modules) out of the build
+# context.
 tests/
