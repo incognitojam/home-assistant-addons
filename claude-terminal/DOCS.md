@@ -30,6 +30,16 @@ No configuration is needed to get started! The add-on uses OAuth authentication,
 
 Your OAuth credentials are stored in the `/data/.config/claude` directory and will persist across add-on updates and restarts, so you won't need to log in again.
 
+### Network access
+
+Open the terminal through the Home Assistant sidebar panel or **OPEN WEB UI**. Home Assistant ingress handles access through your Home Assistant login; it does not require a host port. The terminal still listens on port 7681 inside the container, but the direct host port is disabled by default.
+
+For optional direct access, set a host port for `7681/tcp` in the add-on's **Network** settings, save, and restart the add-on. Leave that field empty to keep direct access disabled.
+
+**Warning:** Enabling the direct port exposes an unauthenticated root terminal to the network, including access to Home Assistant configuration and the add-on's manager-level Supervisor token. Anthropic OAuth authenticates Claude usage; it does not protect this terminal. Use the sidebar panel for normal access.
+
+Existing installations retain saved Network settings across updates. If a host port is already configured, clear the `7681/tcp` field, save, and restart the add-on to disable direct access.
+
 ### Options
 
 A few optional settings are available under the add-on's **Configuration** tab:
@@ -129,7 +139,8 @@ Claude Code is designed with security in mind:
 
 - The add-on runs in an isolated container
 - Your code and queries go directly to Anthropic's API
-- OAuth authentication ensures secure access to your account
+- Home Assistant ingress protects sidebar access with your Home Assistant login
+- Anthropic OAuth protects access to your Anthropic account; the optional direct terminal port has no authentication
 
 To further enhance security:
 - Log out when not actively using the terminal
