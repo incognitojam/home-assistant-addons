@@ -38,6 +38,7 @@ RUN apk add --no-cache \
     python3 \
     ripgrep \
     sqlite \
+    tmux \
     ttyd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -60,13 +61,14 @@ RUN HA_ARCH=$(cat /tmp/ha_arch) && \
 # Set working directory to the runtime Home Assistant configuration mount
 WORKDIR /config
 
-# Copy startup script, modular scripts, and Claude context documentation
+# Copy startup script, modular scripts, tmux config, and Claude context documentation
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
+COPY tmux.conf /opt/tmux.conf
 COPY CLAUDE.md /opt/CLAUDE.md
 RUN chmod +x /run.sh \
     && chmod +x /opt/scripts/*.sh \
-    && chmod 644 /opt/CLAUDE.md \
+    && chmod 644 /opt/tmux.conf /opt/CLAUDE.md \
     && /opt/scripts/create-ttyd-index.sh
 
 # Use exec form for better signal handling

@@ -68,6 +68,10 @@ The Claude Code CLI launches automatically when you open the terminal. You can i
 
 All your files are stored in `/config/claude-code`, which persists between restarts.
 
+### Refreshing and reconnecting
+
+The terminal session keeps running when you refresh or close the page, or when Home Assistant reconnects. Opening the terminal again, in any tab or on any device, returns to the same session with its recent output. To start a fresh session, exit the current one (`/exit` in Claude, or `exit` in the shell) and press Enter to reconnect. Restarting the add-on also ends the session; run `claude -c` to continue the last conversation.
+
 ## Home Assistant-Specific Use Cases
 
 Claude Code is particularly useful for Home Assistant tasks. Here are some example uses:
