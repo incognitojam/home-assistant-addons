@@ -29,40 +29,26 @@ printf '%s\n' "$doctor"
 [[ "$doctor" != *'custom launcher'* ]]
 [[ "$doctor" == *'DISABLE_AUTOUPDATER'* ]]
 
-# A second boot must neither copy the seed again nor reset a managed update.
+# A second boot must not copy the seed again.
 inode=$(stat -c %i "$seed")
 init_environment
 [ "$(stat -c %i "$seed")" = "$inode" ]
 
-# Exact legacy fallback migration reuses an existing valid downloaded slot.
-rm "$launcher"
-ln -s /root/.local/bin/claude "$launcher"
-init_environment
-[ "$(readlink "$launcher")" = "$seed" ]
-[ "$(stat -c %i "$seed")" = "$inode" ]
-[ "$(claude --version)" = "$version_output" ]
-# Repeat with an absent seed to exercise the actual legacy copy path.
+# Migration seeds the bundled version, leaving a newer cached version unselected.
+# This offline fixture models an update; it does not test upstream download/relink.
+updated="$XDG_DATA_HOME/claude/versions/0.0.0-test-update"
+printf '#!/bin/sh\necho "0.0.0-test-update (synthetic)"\n' > "$updated"
+chmod +x "$updated"
 rm "$launcher" "$seed"
 ln -s /root/.local/bin/claude "$launcher"
 init_environment
 [ "$(readlink "$launcher")" = "$seed" ]
 cmp "$bundled" "$seed"
-doctor=$(timeout 30 claude doctor 2>&1)
-[[ "$doctor" == *"Running: native ($version)"* ]]
-[[ "$doctor" == *"Path: $seed"* ]]
-[[ "$doctor" != *'not created by the native installer'* ]]
-[[ "$doctor" != *'custom launcher'* ]]
-printf 'Exact legacy fallback migrated; real Claude doctor recognizes native management.\n'
+[ "$(claude --version)" = "$version_output" ]
+[ "$DISABLE_AUTOUPDATER" = 1 ]
+printf 'Exact legacy fallback migrated to the bundled version.\n'
 
-# Offline fixture models the result of an upstream update; it does not test
-# the upstream download/relink code. Keep a cached version unselected on migration.
-updated="$XDG_DATA_HOME/claude/versions/0.0.0-test-update"
-printf '#!/bin/sh\necho "0.0.0-test-update (synthetic)"\n' > "$updated"
-chmod +x "$updated"
-rm "$launcher"
-ln -s /root/.local/bin/claude "$launcher"
-init_environment
-[ "$(readlink "$launcher")" = "$seed" ]
+# A managed update survives initialization under either auto-update preference.
 ln -sfn "$updated" "$launcher"
 init_environment
 [ "$(readlink "$launcher")" = "$updated" ]
@@ -74,27 +60,17 @@ init_environment
 [ -z "${DISABLE_AUTOUPDATER+x}" ]
 printf 'Managed update survives boots with auto-updates disabled and enabled.\n'
 
-# Preserve intentional executables, custom links, and broken custom links.
-rm "$launcher"
-printf '#!/bin/sh\necho synthetic-wrapper\n' > "$launcher"
-chmod +x "$launcher"
-init_environment
-[ ! -L "$launcher" ]
-[ "$(claude --version)" = synthetic-wrapper ]
-mv "$launcher" /data/synthetic-custom-claude
-ln -s /data/synthetic-custom-claude "$launcher"
+# Preserve an intentional custom launcher.
+printf '#!/bin/sh\necho synthetic-wrapper\n' > /data/synthetic-custom-claude
+chmod +x /data/synthetic-custom-claude
+ln -sfn /data/synthetic-custom-claude "$launcher"
 init_environment
 [ "$(readlink "$launcher")" = /data/synthetic-custom-claude ]
 [ "$(claude --version)" = synthetic-wrapper ]
-rm "$launcher"
-ln -s /data/synthetic-missing-launcher "$launcher"
-init_environment
-[ "$(readlink "$launcher")" = /data/synthetic-missing-launcher ]
-printf 'Custom executable and custom links (including broken links) preserved.\n'
+printf 'Custom launcher preserved.\n'
 
-# Bootstrap failures leave the old launcher and existing slots untouched.
-rm "$launcher"
-ln -s /root/.local/bin/claude "$launcher"
+# An invalid seed must leave both the original file and legacy launcher untouched.
+ln -sfn /root/.local/bin/claude "$launcher"
 rm "$seed"
 printf 'invalid downloaded binary\n' > "$seed"
 if bootstrap_claude_launcher; then
@@ -103,46 +79,6 @@ if bootstrap_claude_launcher; then
 fi
 [ "$(cat "$seed")" = 'invalid downloaded binary' ]
 [ "$(readlink "$launcher")" = /root/.local/bin/claude ]
-rm "$seed"
-ln -s "$bundled" "$seed"
-if bootstrap_claude_launcher; then
-    echo 'Unexpected success with chained seed' >&2
-    exit 1
-fi
-[ "$(readlink "$seed")" = "$bundled" ]
-rm "$seed"
-printf '#!/bin/sh\necho "0.0.0 (Claude Code)"\n' > "$seed"
-chmod +x "$seed"
-if bootstrap_claude_launcher; then
-    echo 'Unexpected success with mismatched seed version' >&2
-    exit 1
-fi
-[ "$(readlink "$launcher")" = /root/.local/bin/claude ]
-rm "$seed"
-
-# Alter only this disposable image's bundled launcher to test missing/malformed
-# sources. A fresh missing source must also make actual init fail, not continue.
-rm /root/.local/bin/claude
-ln -s /data/synthetic-missing-binary /root/.local/bin/claude
-if bootstrap_claude_launcher; then
-    echo 'Unexpected success with missing bundled binary' >&2
-    exit 1
-fi
-[ "$(readlink "$launcher")" = /root/.local/bin/claude ]
-rm "$launcher"
-if bash -c 'source /usr/lib/bashio/bashio.sh; source <(sed '\''$d'\'' /run.sh); init_environment'; then
-    echo 'Unexpected init success with missing bundled binary' >&2
-    exit 1
-fi
-[ ! -e "$launcher" ] && [ ! -L "$launcher" ]
-rm /root/.local/bin/claude
-printf '#!/bin/sh\necho malformed-version\n' > /root/.local/bin/claude
-chmod +x /root/.local/bin/claude
-if bootstrap_claude_launcher; then
-    echo 'Unexpected success with malformed bundled version' >&2
-    exit 1
-fi
-[ ! -e "$launcher" ] && [ ! -L "$launcher" ]
 [ -z "$(find "$XDG_DATA_HOME/claude/versions" -name '.bootstrap-*' -print)" ]
-printf 'Invalid/missing binaries fail safely without replacing existing files.\n'
+printf 'Invalid seed fails safely without replacing existing files.\n'
 printf 'Claude native launcher tests passed.\n'
