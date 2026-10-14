@@ -33,5 +33,16 @@ tmux -f /opt/tmux.conf new-session -A -s "$session" bash -c "$session_command"
 if [ "$last_screen" -nt "$attached_at" ]; then
     # Drop trailing blank rows so the screen ends at its last output.
     awk 'NF { for (; blank; blank--) print ""; print; next } { blank++ }' "$last_screen"
+
+    # ttyd closes the connection as soon as this script exits and drops
+    # output it has not sent yet. Ask the terminal for its cursor position and
+    # wait for the answer: it comes back only after the browser has received
+    # everything printed before the question.
+    if saved_tty=$(stty -g 2>/dev/null); then
+        stty -echo -icanon
+        printf '\033[6n'
+        IFS= read -r -s -d R -t 2 _ || true
+        stty "$saved_tty"
+    fi
 fi
 rm -f "$attached_at"
