@@ -67,11 +67,11 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 
 `.github/workflows/build.yml` runs on pull requests, on pushes to `main` and on manual dispatch.
 
-- `build` builds each add-on natively for amd64 and aarch64 and tests the image. For codex-terminal it runs the scripts in `tests/` inside the image. For claude-terminal it runs the e2e tests, with the `@network` test as a separate step.
-- `hadolint` lints both Dockerfiles with hadolint v2.15.1.
-- `check` looks up whether `ghcr.io/incognitojam/{arch}-<add-on>:<version>` exists for the version in each `config.yaml`, using `.github/scripts/ghcr-tag-state.sh`.
-- `publish` runs only on `main`. For each missing tag it pushes the image that `build` just tested, and never overwrites an existing tag. It is the only job with `packages: write`.
-- `CI` runs on `ubuntu-slim` and is the required check. It passes only when `check`, `build` and `hadolint` all succeed.
+- `check` looks up whether `ghcr.io/incognitojam/{arch}-<add-on>:<version>` exists for the version in each `config.yaml`, using `.github/scripts/ghcr-tag-state.sh`, and returns separate missing-tag lists for each add-on. It also runs `.github/tests/publish-gates_test.rb` to exercise publish conditions, validation gates and the tag discovery/push scripts with synthetic registry and Docker responses.
+- `claude` and `codex` each call `validate-addon.yml`. Its `build` matrix builds and tests both amd64 and aarch64 natively, and its `hadolint` job lints that add-on's Dockerfile with hadolint v2.15.1. Codex tests run inside the image; Claude e2e tests include a separate `@network` step and failure artifacts. An explicit validation gate requires both architectures and lint to succeed and rejects failed, skipped or canceled jobs.
+- `publish_claude` and `publish_codex` each call `publish-addon.yml` only on `main`, after `check` and their own add-on validation succeed and there are missing tags. One add-on's failure or canceled validation does not block the other's release. Canceling the whole workflow prevents new publish jobs; main runs are not automatically canceled by newer runs, and build matrices disable fail-fast cancellation.
+- Publishing loads the exact tested image artifact and never rebuilds it. Each image has a publish concurrency group, and the registry is checked again before pushing so existing version tags are never overwritten. Only publish jobs receive `packages: write`; pull requests cannot publish.
+- `CI` runs on `ubuntu-slim` and remains the required check. It requires `check` and both add-on validations to succeed on every run, even when one add-on can publish independently on `main`. It does not wait for publishing.
 
 ## Conventions
 
