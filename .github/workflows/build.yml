@@ -292,7 +292,7 @@ jobs:
     name: CI
     needs: [check, build, hadolint]
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Require every job to succeed
         env:

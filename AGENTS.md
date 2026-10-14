@@ -71,7 +71,7 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 - `hadolint` lints both Dockerfiles with hadolint v2.15.1.
 - `check` looks up whether `ghcr.io/incognitojam/{arch}-<add-on>:<version>` exists for the version in each `config.yaml`, using `.github/scripts/ghcr-tag-state.sh`.
 - `publish` runs only on `main`. For each missing tag it pushes the image that `build` just tested, and never overwrites an existing tag. It is the only job with `packages: write`.
-- `CI` is the required check. It passes only when `check`, `build` and `hadolint` all succeed.
+- `CI` runs on `ubuntu-slim` and is the required check. It passes only when `check`, `build` and `hadolint` all succeed.
 
 ## Conventions
 
