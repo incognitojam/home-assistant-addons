@@ -5,14 +5,59 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Supervisor pulls ghcr.io/incognitojam/{arch}-<add-on>:<version>.
+  IMAGE_OWNER: incognitojam
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  check:
+    name: Check published images
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      targets: ${{ steps.check.outputs.targets }}
+      keys: ${{ steps.check.outputs.keys }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Each version is published once: an existing tag is a release and is
+      # never overwritten, so a push without a version bump publishes nothing.
+      - name: Find versions without an image
+        id: check
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          targets='[]'
+          for addon in claude-terminal codex-terminal; do
+            version="$(awk -F': *' '/^version:/ { gsub(/"/, "", $2); print $2; exit }' "${addon}/config.yaml")"
+            for arch in amd64 aarch64; do
+              repository="${IMAGE_OWNER}/${arch}-${addon}"
+              state="$(.github/scripts/ghcr-tag-state.sh "${repository}" "${version}")"
+              echo "ghcr.io/${repository}:${version} is ${state}"
+              if [[ "${state}" == missing ]]; then
+                targets="$(jq -c --arg addon "${addon}" --arg arch "${arch}" --arg version "${version}" \
+                  '. + [{addon: $addon, arch: $arch, version: $version}]' <<< "${targets}")"
+              fi
+            done
+          done
+          echo "targets=${targets}" >> "${GITHUB_OUTPUT}"
+          echo "keys=$(jq -c 'map("\(.addon)/\(.arch)")' <<< "${targets}")" >> "${GITHUB_OUTPUT}"
+
   build:
     name: Build Docker Image
+    needs: check
     # Keep both architectures on Ubuntu 24.04 for Playwright system dependencies.
     runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
@@ -27,11 +72,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Read app version
+      - name: Read app metadata
         id: addon
         run: |
-          version="$(awk -F': *' '/^version:/ { gsub(/"/, "", $2); print $2; exit }' "${{ matrix.addon }}/config.yaml")"
-          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          field() {
+            awk -F': *' -v key="$1" '$1 == key { sub(/^[^:]*: */, ""); gsub(/^"|"$/, ""); print; exit }' "${{ matrix.addon }}/config.yaml"
+          }
+          {
+            echo "version=$(field version)"
+            echo "name=$(field name)"
+            echo "description=$(field description)"
+            echo "url=$(field url)"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Build image
         uses: docker/build-push-action@v7
@@ -46,6 +98,22 @@ jobs:
             BUILD_ARCH=${{ matrix.arch }}
             BUILD_VERSION=${{ steps.addon.outputs.version }}
           tags: local/${{ matrix.addon }}:${{ matrix.arch }}
+          # Supervisor adds these labels when it builds locally; a prebuilt
+          # image has to carry them itself. The source label links the GHCR
+          # package to this repository.
+          labels: |
+            io.hass.name=${{ steps.addon.outputs.name }}
+            io.hass.description=${{ steps.addon.outputs.description }}
+            io.hass.url=${{ steps.addon.outputs.url }}
+            io.hass.version=${{ steps.addon.outputs.version }}
+            io.hass.arch=${{ matrix.arch }}
+            io.hass.type=app
+            org.opencontainers.image.title=${{ steps.addon.outputs.name }}
+            org.opencontainers.image.description=${{ steps.addon.outputs.description }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.addon.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=MIT
 
       - name: Test Codex daemon startup
         if: matrix.addon == 'codex-terminal'
@@ -120,6 +188,27 @@ jobs:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/network
         run: npm test -- --grep @network --output test-results/network
 
+      # The publish job pushes this exact tested image, not a rebuild.
+      - name: Save image for publishing
+        if: >-
+          github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+          contains(fromJSON(needs.check.outputs.keys), format('{0}/{1}', matrix.addon, matrix.arch))
+        run: |
+          docker image inspect --format 'Image ID: {{.Id}}' local/${{ matrix.addon }}:${{ matrix.arch }}
+          docker save --output image.tar local/${{ matrix.addon }}:${{ matrix.arch }}
+
+      - name: Upload image for publishing
+        if: >-
+          github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+          contains(fromJSON(needs.check.outputs.keys), format('{0}/{1}', matrix.addon, matrix.arch))
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-${{ matrix.addon }}-${{ matrix.arch }}
+          path: image.tar
+          compression-level: 1
+          retention-days: 1
+          if-no-files-found: error
+
       - name: Upload e2e test artifacts
         if: failure() && matrix.addon == 'claude-terminal'
         uses: actions/upload-artifact@v7
@@ -151,9 +240,57 @@ jobs:
             ghcr.io/hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d \
             hadolint "${{ matrix.dockerfile }}"
 
+  publish:
+    name: Publish ${{ matrix.addon }} ${{ matrix.version }} (${{ matrix.arch }})
+    needs: [check, build, hadolint]
+    if: >-
+      github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+      needs.check.outputs.targets != '[]'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: publish-${{ matrix.addon }}-${{ matrix.arch }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.check.outputs.targets) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download tested image
+        uses: actions/download-artifact@v8
+        with:
+          name: image-${{ matrix.addon }}-${{ matrix.arch }}
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GHCR_TOKEN}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Push image
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ghcr.io/${{ env.IMAGE_OWNER }}/${{ matrix.arch }}-${{ matrix.addon }}:${{ matrix.version }}
+        run: |
+          # Check again: another run may have published this version meanwhile.
+          state="$(.github/scripts/ghcr-tag-state.sh "${IMAGE_OWNER}/${{ matrix.arch }}-${{ matrix.addon }}" "${{ matrix.version }}")"
+          if [[ "${state}" == present ]]; then
+            echo "::notice::${IMAGE} already exists; not overwriting it"
+            exit 0
+          fi
+          docker load --input image.tar
+          docker image inspect --format 'Image ID: {{.Id}}' local/${{ matrix.addon }}:${{ matrix.arch }}
+          docker tag local/${{ matrix.addon }}:${{ matrix.arch }} "${IMAGE}"
+          docker push "${IMAGE}"
+          echo "Published \`${IMAGE}\`" >> "${GITHUB_STEP_SUMMARY}"
+
   ci:
     name: CI
-    needs: [build, hadolint]
+    needs: [check, build, hadolint]
     if: always()
     runs-on: ubuntu-slim
     steps:
