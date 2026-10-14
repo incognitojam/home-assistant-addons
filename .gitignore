@@ -5,6 +5,8 @@ node_modules/
 npm-debug.log
 yarn-error.log
 package-lock.json
+# ...but commit the e2e test lockfile so CI installs the pinned Playwright
+!claude-terminal/tests/package-lock.json
 yarn.lock
 
 # Logs

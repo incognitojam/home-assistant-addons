@@ -104,6 +104,17 @@ docker exec test-claude-dev chmod +x /opt/scripts/claude-session-picker.sh
 5. **Test** changes at http://localhost:7681
 6. **Repeat** until satisfied, then commit and push
 
+#### End-to-End Tests
+Playwright tests in `claude-terminal/tests/` start their own container from a built image (on a free port, removed afterwards) and drive the web terminal directly and through an ingress-like proxy under `/api/hassio_ingress/<token>/`, plus phone emulation. CI runs them on amd64.
+```bash
+npm --prefix claude-terminal/tests ci
+npm --prefix claude-terminal/tests run install-browsers   # Chromium + WebKit, once
+IMAGE=local/claude-terminal:test npm --prefix claude-terminal/tests test
+# Skip the test that needs to reach Anthropic's API
+IMAGE=local/claude-terminal:test npm --prefix claude-terminal/tests test -- --grep-invert @network
+```
+On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, container logs, screenshot and trace (`npx playwright show-trace <trace.zip>`). Tests read the screen via ttyd's `window.term` and poll it with timeouts; select session picker entries by label, not number.
+
 #### Debugging Tips
 - **Check container logs**: `docker logs -f test-claude-dev` (follow mode)
 - **Inspect running processes**: `docker exec test-claude-dev ps aux`
