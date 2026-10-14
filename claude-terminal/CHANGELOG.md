@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.8.0
+
+### 🔒 Security Fixes
+- **Direct terminal port disabled by default**: The unauthenticated web-terminal port 7681 is now disabled by default, with sidebar access (ingress) unaffected; existing host ports saved in the add-on's Network settings are retained and should be cleared, saved, and followed by a restart unless direct access is needed.
+- **Removed unused host D-Bus access**: The add-on no longer requests access to the host D-Bus socket.
+
+### 🗑️ Removed
+- **Removed broken Authentication helper**: The session picker now has six options; sign in through Claude itself.
+- **Removed unused scripts**: Deleted the Home Assistant API examples script and startup health-check diagnostics.
+
+### 🐛 Bug Fixes
+- **Stopped re-copying legacy credentials on every boot**: Only installations whose credentials still exist solely in the pre-1.2.0 `/config/claude-config` location need to sign in again.
+
+### 🛠️ Improvements
+- **Cleaned up credential configuration**: Removed unused `ANTHROPIC_CONFIG_DIR` and `ANTHROPIC_HOME` variables and corrected the docs to show `/data/home/.claude/` as the credential location.
+
 ## 1.7.8
 
 ### 🔄 Dependencies

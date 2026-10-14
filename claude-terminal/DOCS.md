@@ -48,6 +48,10 @@ Claude can read and change your live HA configuration and use HA APIs. Back up b
 - `/data/home` is the persistent terminal home. Claude credentials, settings, and conversation data live under `/data/home/.claude`; onboarding and global configuration live in `/data/home/.claude.json`.
 - Claude's runtime launcher and native updates use `/data/home/.local`. Authentication and installed updates survive add-on restarts through the `/data` volume.
 
+### Home Assistant context
+
+The add-on writes Claude's Home Assistant context to `/data/home/.claude/rules/home-assistant.md` on every start; don't edit this file because it is replaced. Put your own instructions in `/config/CLAUDE.md`. An unmodified `/config/CLAUDE.md` installed by an earlier version is removed; an edited copy is kept.
+
 ## Home Assistant examples
 
 Ask these in an interactive Claude session:
