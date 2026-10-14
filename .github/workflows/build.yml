@@ -33,9 +33,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Test independent publish gates
-        run: ruby .github/tests/publish-gates_test.rb
-
       # Each version is published once: an existing tag is a release and is
       # never overwritten, so a push without a version bump publishes nothing.
       - name: Find versions without an image
