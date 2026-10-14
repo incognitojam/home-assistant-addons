@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.3
+
+### 🐛 Bug Fixes
+- **Keep normal interactive Claude sessions in the classic renderer**: Disable fullscreen rendering and its startup offer to preserve browser scrolling and text selection, including when a fullscreen preference was previously saved.
+
 ## 1.9.2
 
 ### 🐛 Bug Fixes

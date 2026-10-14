@@ -49,6 +49,16 @@ export default defineConfig({
             use: { ...devices['Pixel 7'], access: 'ingress' },
         },
         {
+            name: 'classic-fresh',
+            testMatch: 'classic-renderer.spec.mjs',
+            use: { ...devices['Desktop Chrome'], access: 'ingress', savedFullscreen: false },
+        },
+        ...['auto', 'picker', 'manual'].map(launch => ({
+            name: `classic-${launch}`,
+            testMatch: 'classic-renderer.spec.mjs',
+            use: { ...devices['Desktop Chrome'], access: 'ingress', launch },
+        })),
+        {
             name: 'claude-launch',
             testMatch: 'claude-launch.spec.mjs',
             use: { ...devices['Desktop Chrome'], access: 'ingress' },

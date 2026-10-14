@@ -59,6 +59,13 @@ init_environment() {
     export XDG_STATE_HOME="$state_dir"
     export XDG_DATA_HOME="/data/.local/share"
 
+    # Keep normal interactive sessions in the classic renderer so the web
+    # terminal retains browser scrolling and selection. This supported override
+    # takes precedence over CLAUDE_CODE_NO_FLICKER and a saved tui=fullscreen
+    # preference.
+    export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
+    bashio::log.info "Claude renderer: classic for normal interactive launches"
+
     # Ensure claude binary is in PATH (both for this script and spawned shells)
     # Add both /root/.local/bin (where it's installed) and $HOME/.local/bin (where Claude expects it)
     export PATH="$data_home/.local/bin:/root/.local/bin:${PATH}"
