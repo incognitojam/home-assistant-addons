@@ -132,9 +132,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Deliberately fail for aggregate validation
-        run: exit 1
-
       - name: Run hadolint
         run: |
           docker run --rm \
