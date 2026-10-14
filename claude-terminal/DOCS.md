@@ -54,6 +54,12 @@ A few optional settings are available under the add-on's **Configuration** tab:
 
 The default, `auto`, uses Claude Code's AI permission classifier so sessions run with fewer prompts; it's a [research preview](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode) and needs a recent model (Opus 4.6+ or Sonnet 4.6+). If it isn't available for your account, Claude falls back to prompting. Prefer to approve each action yourself? Set `permission_mode` to `default`.
 
+### Home Assistant context
+
+On every start, the add-on gives Claude a short description of its environment: where the Home Assistant configuration lives, how to reach Home Assistant, and how to make changes safely. It is stored in the add-on's private storage at `/data/home/.claude/rules/home-assistant.md` and replaced on each start, so don't edit it. Put your own instructions in `/config/CLAUDE.md`.
+
+Earlier versions wrote this context to `/config/CLAUDE.md`. If that file is unchanged from a copy the add-on installed, the add-on removes it. If you edited it, the add-on leaves it in place.
+
 ## Usage
 
 The Claude Code CLI launches automatically when you open the terminal. You can interact with it using the following commands:
