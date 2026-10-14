@@ -62,7 +62,7 @@ claude-logout
 The add-on requires no configuration. All settings are handled automatically:
 
 - **Network**: Use the Home Assistant sidebar panel via ingress. The terminal listens on port 7681 inside the container; the optional direct host port is disabled by default.
-- **Authentication**: Home Assistant login for sidebar access; Anthropic OAuth for Claude usage (credentials stored in `/data/.config/claude/`).
+- **Authentication**: Home Assistant login for sidebar access; Anthropic OAuth for Claude usage (credentials stored in `/data/home/.claude/.credentials.json`).
 - **Terminal**: Full bash environment with Claude Code CLI pre-installed
 - **Volumes**: Access to both `/config` (Home Assistant) and `/addons` (for development)
 

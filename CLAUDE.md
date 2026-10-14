@@ -39,16 +39,15 @@ curl -X GET http://localhost:7681/
 
 ### Key Components
 1. **Web Terminal**: Uses ttyd to provide browser-based terminal access
-2. **Credential Management**: Persistent authentication storage in `/config/claude-config/`
+2. **Credential Management**: Persistent authentication storage in `/data/home/.claude/`
 3. **Service Integration**: Home Assistant ingress support with panel icon
 4. **Multi-Architecture**: Supports amd64 and aarch64 platforms
 
 ### Credential System
-The add-on implements a sophisticated credential management system:
-- **Persistent Storage**: Credentials saved to `/config/claude-config/` (survives restarts)
-- **Multiple Locations**: Handles various Claude credential file locations
-- **Background Service**: Continuous credential monitoring and saving
-- **Security**: Proper file permissions (600) and safe directory operations
+Claude Code stores its state under the persistent home directory:
+- **Persistent Storage**: OAuth credentials in `/data/home/.claude/.credentials.json` and user settings in `/data/home/.claude/settings.json`
+- **Global State**: Onboarding and other global configuration in `/data/home/.claude.json`
+- **Directory Override**: Claude Code uses `CLAUDE_CONFIG_DIR` when explicitly set; the add-on leaves it unset
 
 ### Container Execution Flow
 1. Initialize environment and create credential directories
@@ -68,7 +67,7 @@ For rapid development and debugging without pushing new versions:
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22 -t local/claude-terminal:test ./claude-terminal
 
 # Create test config directory
-mkdir -p /tmp/test-config/claude-config
+mkdir -p /tmp/test-config
 
 # Configure session picker (optional)
 echo '{"auto_launch_claude": false}' > /tmp/test-config/options.json
@@ -135,9 +134,9 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 - **Permissions**: Credential files must have 600 permissions
 
 ### Key Environment Variables
-- `CLAUDE_CREDENTIALS_DIRECTORY=/config/claude-config`
-- `ANTHROPIC_CONFIG_DIR=/config/claude-config`
-- `HOME=/root`
+- `HOME=/data/home`
+- `XDG_CONFIG_HOME=/data/.config` (general configuration; Claude Code uses `$HOME/.claude` by default)
+- `CLAUDE_CONFIG_DIR` (optional override for Claude Code's configuration directory; unset by the add-on)
 
 ### Important Constraints
 - No sudo privileges available in development environment
