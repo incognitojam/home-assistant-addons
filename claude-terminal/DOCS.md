@@ -34,6 +34,12 @@ With auto-launch disabled, the picker offers:
 
 From the shell, run `claude` for an interactive session, `claude --help` for CLI options, or `ha --help` for Home Assistant management commands.
 
+### Terminal rendering
+
+The add-on sets [`CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`](https://code.claude.com/docs/en/env-vars) for normal interactive Claude launches, including the picker and shell. This keeps the classic renderer and avoids the fullscreen startup offer so conversations remain in terminal scrollback for browser scrolling and selection. Fullscreen rendering is not supported in this web terminal yet; its compatibility is still being evaluated.
+
+Saved renderer preferences are preserved, but this override takes precedence over `tui=fullscreen` and `CLAUDE_CODE_NO_FLICKER`. Claude's background sessions opened from agent view or `claude attach` always use fullscreen and are outside this override.
+
 ### Refreshing and reconnecting
 
 Refreshing or closing the page, or an ingress reconnect, leaves the terminal running; opening it again in any tab or on any device returns to the same shared session with its recent output. To start a fresh session, exit (`/exit` in Claude or `exit` in the shell) and press Enter to reconnect. Restarting the add-on also ends the session; use `claude -c` to continue the last conversation.
