@@ -20,7 +20,8 @@ You are running inside the Codex add-on for Home Assistant. Put project instruct
 - Read existing configuration and keep changes small.
 - Before a broad or risky change, create a backup with `ha backups new --name <name>`.
 - After editing YAML, run `ha core check` before reloading or restarting.
-- Prefer domain reload services (for example `automation.reload`) to `ha core restart`. Tell the user before restarting Core.
+- Prefer domain reload services (for example `automation.reload`) to `ha core restart`. Ask the user before restarting Core.
+- Before restarting Core, check that nothing else is in progress, such as a running Supervisor job (`ha jobs info`).
 - Use the UI or API for `/config/.storage/`; Home Assistant overwrites manual edits.
 - After a change, check `ha core logs` for new errors.
 - Before restarting the host, warn the user that this session will be interrupted and must be resumed afterward.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.4
+
+### 🛠️ Improvements
+- **Ask before restarting Home Assistant**: Claude now asks before restarting Home Assistant Core, and checks that no other Supervisor job is running first.
+
 ## 1.9.3
 
 ### 🐛 Bug Fixes
