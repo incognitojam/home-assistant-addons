@@ -27,7 +27,8 @@ You are running inside the Claude Code add-on for Home Assistant. The add-on rew
 - Read the existing configuration before editing it, and keep changes small.
 - Before a broad or risky change, create a backup with `ha backups new --name <name>`.
 - After editing YAML, run `ha core check` before reloading or restarting.
-- Prefer reloading to restarting. Most domains have a reload service, such as `automation.reload`, `script.reload`, `scene.reload`, or `homeassistant.reload_all`. Restart Core (`ha core restart`) only when a change requires it, and tell the user first.
+- Prefer reloading to restarting. Most domains have a reload service, such as `automation.reload`, `script.reload`, `scene.reload`, or `homeassistant.reload_all`. Restart Core (`ha core restart`) only when a change requires it, and ask the user first.
+- Before restarting Core, check that nothing else is in progress, such as a running Supervisor job (`ha jobs info`).
 - Do not edit files under `/config/.storage/` while Home Assistant is running. Home Assistant owns them and overwrites manual edits. Use the UI or the API instead.
 - After a change, check `ha core logs` for new errors.
 

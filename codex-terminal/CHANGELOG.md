@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.29
+
+### Improvements
+- Codex now asks before restarting Home Assistant Core, and checks that no other Supervisor job is running first.
+
 ## 0.2.28
 
 ### Maintenance
