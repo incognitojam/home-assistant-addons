@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.30
+
+### Improvements
+- Include Python 3, so Codex can use it for scripted edits and checks instead of failing with `python3: not found`.
+
 ## 0.2.29
 
 ### Improvements
