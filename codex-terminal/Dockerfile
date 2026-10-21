@@ -33,6 +33,7 @@ RUN apk add --no-cache \
     python3 \
     ripgrep \
     sed \
+    sqlite \
     ttyd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

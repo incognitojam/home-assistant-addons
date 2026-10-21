@@ -4,6 +4,7 @@
 
 ### Improvements
 - Include Python 3, so Codex can use it for scripted edits and checks instead of failing with `python3: not found`.
+- Include SQLite, so Codex can query the Home Assistant history database (`home-assistant_v2.db`).
 
 ## 0.2.29
 
