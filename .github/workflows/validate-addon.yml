@@ -19,6 +19,7 @@ jobs:
     name: Build Docker Image
     # Keep both architectures on Ubuntu 24.04 for Playwright system dependencies.
     runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -190,6 +191,7 @@ jobs:
   hadolint:
     name: Hadolint
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -207,6 +209,7 @@ jobs:
     needs: [build, hadolint]
     if: always()
     runs-on: ubuntu-slim
+    timeout-minutes: 5
     steps:
       - name: Require every job to succeed
         env:
