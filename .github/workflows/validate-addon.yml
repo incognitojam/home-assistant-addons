@@ -133,18 +133,50 @@ jobs:
 
       - name: Install e2e test dependencies
         if: inputs.addon == 'claude-terminal'
-        timeout-minutes: 5
+        id: e2e_deps
+        timeout-minutes: 2
         working-directory: claude-terminal/tests
         run: |
           npm ci
-          npx playwright install --with-deps chromium webkit
+          echo "playwright=$(node -p "require('playwright-core/package.json').version")" >> "${GITHUB_OUTPUT}"
 
+      - name: Cache Playwright browsers
+        if: inputs.addon == 'claude-terminal'
+        id: browser_cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.e2e_deps.outputs.playwright }}-chromium-shell-webkit
+
+      # The tests run Playwright's default headless Chromium, which is the
+      # headless shell.
+      - name: Install Playwright browsers
+        if: inputs.addon == 'claude-terminal' && steps.browser_cache.outputs.cache-hit != 'true'
+        timeout-minutes: 3
+        working-directory: claude-terminal/tests
+        env:
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
+        run: npx playwright install --only-shell chromium webkit
+
+      # Installs only the libraries the browsers link against, not the fonts,
+      # Xvfb and codecs that `playwright install --with-deps` adds, whose apt
+      # download can take minutes on a slow mirror.
+      - name: Install browser system libraries
+        if: inputs.addon == 'claude-terminal'
+        timeout-minutes: 5
+        working-directory: claude-terminal/tests
+        run: node ../../.github/scripts/install-browser-libraries.mjs chromium webkit
+
+      # Playwright's own launch check also requires the H.264 codec, which
+      # pulls in the whole GStreamer libav stack. The tests play no video, and
+      # the previous step has already checked every linked library.
       - name: Test claude-terminal end to end
         if: inputs.addon == 'claude-terminal'
         timeout-minutes: 10
         working-directory: claude-terminal/tests
         env:
           IMAGE: local/claude-terminal:${{ matrix.arch }}
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
         run: npm test -- --grep-invert @network
 
       # Kept separate so a failure that depends on reaching Anthropic's API
@@ -156,6 +188,7 @@ jobs:
         env:
           IMAGE: local/claude-terminal:${{ matrix.arch }}
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/network
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
         run: npm test -- --grep @network --output test-results/network
 
       # The publish job pushes this exact tested image, not a rebuild.
