@@ -21,7 +21,7 @@ jobs:
       !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
       inputs.targets != '' && inputs.targets != '[]'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 5
     permissions:
       contents: read
       packages: write

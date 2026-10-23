@@ -22,7 +22,7 @@ jobs:
   check:
     name: Check published images
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 2
     permissions:
       contents: read
       packages: read
@@ -113,7 +113,7 @@ jobs:
     needs: [check, claude, codex]
     if: always()
     runs-on: ubuntu-slim
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: Require every job to succeed
         env:
