@@ -1,7 +1,7 @@
 ---
 name: "Codex for Home Assistant"
 description: "Terminal interface for OpenAI Codex CLI with Home Assistant tools"
-version: "0.2.32"
+version: "0.2.33"
 image: "ghcr.io/incognitojam/{arch}-codex-terminal"
 slug: "codex_terminal"
 init: false
