@@ -73,6 +73,8 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 - Publishing loads the exact tested image artifact and never rebuilds it. Each image has a publish concurrency group, and the registry is checked again before pushing so existing version tags are never overwritten. Only publish jobs receive `packages: write`; pull requests cannot publish.
 - `CI` runs on `ubuntu-slim` and remains the required check. It requires `check` and both add-on validations to succeed on every run, even when one add-on can publish independently on `main`. It does not wait for publishing.
 
+`.github/workflows/update-codex-terminal.yml` runs daily and on manual dispatch, with an optional `codex_release` input. When npm's latest `@openai/codex` is newer than `CODEX_RELEASE`, `.github/scripts/update-codex-terminal.sh` bumps the pin, the add-on patch version and the changelog. The workflow then force-pushes `automation/update-codex-cli` and opens or updates its PR. Pushes and PRs made with `GITHUB_TOKEN` don't trigger other workflows, so the job dispatches Build on the branch, which reports `CI` on its head commit, and waits for it. When CI passes, it squash-merges the PR and dispatches Build on `main` to publish. When CI fails, the PR stays open, and later runs skip that release instead of retrying it.
+
 ## Conventions
 
 - Commit and PR titles use Scoped Commits with the add-on as the scope, for example `claude-terminal: <description>` or `codex-terminal: <description>`. Repository-wide changes use `docs:` or `ci:`.
