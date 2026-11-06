@@ -2,3 +2,5 @@
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 sandbox_mode = "workspace-write"
+# Codex releases reach this add-on through tested add-on updates.
+check_for_update_on_startup = false

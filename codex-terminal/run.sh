@@ -189,31 +189,71 @@ verify_tools() {
     fi
 }
 
+# Compare numeric x.y.z cores; an equal or unparsable override is not newer.
+codex_version_is_newer() {
+    local pattern='([0-9]+)\.([0-9]+)\.([0-9]+)'
+    local index candidate=() baseline=()
+
+    [[ "$1" =~ ${pattern} ]] || return 1
+    candidate=("${BASH_REMATCH[@]:1}")
+    [[ "$2" =~ ${pattern} ]] || return 1
+    baseline=("${BASH_REMATCH[@]:1}")
+
+    for index in 0 1 2; do
+        if ((10#${candidate[index]} > 10#${baseline[index]})); then
+            return 0
+        fi
+        if ((10#${candidate[index]} < 10#${baseline[index]})); then
+            return 1
+        fi
+    done
+    return 1
+}
+
+# Run the newest working Codex, so add-on updates also move past an older override.
 select_codex() {
     local bundled_codex="/usr/local/bin/codex"
     local persistent_codex="${NPM_CONFIG_PREFIX}/bin/codex"
+    local bundled_version=""
+    local persistent_version=""
     local selected_codex=""
     local selected_version=""
 
     if [ -e "${persistent_codex}" ] || [ -L "${persistent_codex}" ]; then
-        if [ -x "${persistent_codex}" ] \
-            && selected_version="$("${persistent_codex}" --version 2>/dev/null)" \
-            && [ -n "${selected_version}" ]; then
-            selected_codex="${persistent_codex}"
-        else
+        if [ ! -x "${persistent_codex}" ] \
+            || ! persistent_version="$("${persistent_codex}" --version 2>/dev/null)" \
+            || [ -z "${persistent_version}" ]; then
+            persistent_version=""
             bashio::log.warning "Persistent Codex failed its startup check; using the bundled fallback"
             bashio::log.warning "Run !/usr/local/bin/reset-codex-version from Codex to remove the broken override"
         fi
     fi
 
-    if [ -z "${selected_codex}" ]; then
-        if [ ! -x "${bundled_codex}" ] \
-            || ! selected_version="$("${bundled_codex}" --version 2>/dev/null)" \
-            || [ -z "${selected_version}" ]; then
-            bashio::log.error "Bundled Codex failed its startup check"
-            exit 1
+    if [ ! -x "${bundled_codex}" ] \
+        || ! bundled_version="$("${bundled_codex}" --version 2>/dev/null)" \
+        || [ -z "${bundled_version}" ]; then
+        bundled_version=""
+    fi
+
+    if [ -z "${bundled_version}" ] && [ -z "${persistent_version}" ]; then
+        bashio::log.error "Bundled Codex failed its startup check"
+        exit 1
+    fi
+
+    if [ -z "${bundled_version}" ]; then
+        bashio::log.warning "Bundled Codex failed its startup check; using the persistent version"
+        selected_codex="${persistent_codex}"
+        selected_version="${persistent_version}"
+    elif [ -n "${persistent_version}" ] \
+        && codex_version_is_newer "${persistent_version}" "${bundled_version}"; then
+        selected_codex="${persistent_codex}"
+        selected_version="${persistent_version}"
+    else
+        if [ -n "${persistent_version}" ]; then
+            bashio::log.info "Ignoring persistent Codex (${persistent_version}); the bundled version is the same or newer"
         fi
         selected_codex="${bundled_codex}"
+        selected_version="${bundled_version}"
     fi
 
     export CODEX_EXECUTABLE="${selected_codex}"

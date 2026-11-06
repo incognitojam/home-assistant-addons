@@ -4,8 +4,8 @@ A Home Assistant app that opens the OpenAI Codex CLI in a browser terminal.
 
 ## Features
 
-- Pinned Codex CLI fallback installed with npm
-- Opt-in Codex updates that persist across app image upgrades
+- Pinned Codex CLI installed with npm and updated through tested app releases
+- Opt-in early Codex updates that persist until an app release catches up
 - Pre-launch authentication picker for device code or API key sign-in
 - Automatic command approval review through Codex's Approve for me mode
 - Browser terminal through Home Assistant ingress

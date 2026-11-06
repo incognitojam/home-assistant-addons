@@ -112,3 +112,13 @@ test("command-line settings override the image default", async () => {
     const config = await readConfig(undefined, ["-c", 'approvals_reviewer="user"']);
     assert.equal(config.approvals_reviewer, "user");
 });
+
+test("image defaults disable the startup update prompt", async () => {
+    const config = await readConfig();
+    assert.equal(config.check_for_update_on_startup, false);
+});
+
+test("a saved update check setting overrides the image default", async () => {
+    const config = await readConfig("check_for_update_on_startup = true\n");
+    assert.equal(config.check_for_update_on_startup, true);
+});

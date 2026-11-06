@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.35
+
+### Improvements
+- Stop showing Codex's update prompt at startup. New Codex releases arrive as tested app updates. Set `check_for_update_on_startup = true` in `/data/.codex/config.toml` to turn the prompt back on.
+- Use a Codex installed under `/data/npm`, including with the prompt's "Update now", only while it is newer than the bundled version. App updates now move past an older copy instead of leaving you on it.
+
 ## 0.2.34
 
 ### Maintenance
