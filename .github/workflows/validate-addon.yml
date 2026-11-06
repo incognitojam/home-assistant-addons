@@ -19,7 +19,7 @@ jobs:
     name: Build Docker Image
     # Keep both architectures on Ubuntu 24.04 for Playwright system dependencies.
     runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
-    timeout-minutes: 10
+    timeout-minutes: 13
     strategy:
       fail-fast: false
       matrix:
@@ -158,14 +158,30 @@ jobs:
           PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
         run: npx playwright install --only-shell chromium webkit
 
+      # Azure's Ubuntu mirror sometimes takes minutes to serve these packages.
+      - name: Cache browser system library packages
+        if: inputs.addon == 'claude-terminal'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/apt-archives
+          key: apt-archives-${{ runner.os }}-${{ runner.arch }}-${{ steps.e2e_deps.outputs.playwright }}
+          restore-keys: apt-archives-${{ runner.os }}-${{ runner.arch }}-
+
       # Installs only the libraries the browsers link against, not the fonts,
       # Xvfb and codecs that `playwright install --with-deps` adds, whose apt
-      # download can take minutes on a slow mirror.
+      # download can take minutes on a slow mirror. A config file also covers
+      # the installer's `playwright install-deps` fallback.
       - name: Install browser system libraries
         if: inputs.addon == 'claude-terminal'
-        timeout-minutes: 5
+        timeout-minutes: 8
         working-directory: claude-terminal/tests
-        run: node ../../.github/scripts/install-browser-libraries.mjs chromium webkit
+        run: |
+          mkdir -p ~/.cache/apt-archives/partial
+          printf 'Dir::Cache::archives "%s";\nAcquire::Retries "3";\n' ~/.cache/apt-archives \
+            | sudo tee /etc/apt/apt.conf.d/99-ci-archives
+          node ../../.github/scripts/install-browser-libraries.mjs chromium webkit
+          # apt leaves root-owned files that the cache can't save otherwise.
+          sudo chown -R "$(id -u):$(id -g)" ~/.cache/apt-archives
 
       # Playwright's own launch check also requires the H.264 codec, which
       # pulls in the whole GStreamer libav stack. The tests play no video, and

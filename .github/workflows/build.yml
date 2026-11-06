@@ -26,13 +26,41 @@ jobs:
     permissions:
       contents: read
       packages: read
+      pull-requests: read
     outputs:
+      validate_claude: ${{ steps.changes.outputs.validate_claude }}
+      validate_codex: ${{ steps.changes.outputs.validate_codex }}
       claude_targets: ${{ steps.check.outputs.claude_targets || '[]' }}
       codex_targets: ${{ steps.check.outputs.codex_targets || '[]' }}
       keys: ${{ steps.check.outputs.keys || '[]' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      # A pull request that only touches one add-on doesn't validate the other.
+      # Everything else validates both, including every run on main.
+      - name: Find add-ons to validate
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          validate_claude=true
+          validate_codex=true
+          if [[ "${GITHUB_EVENT_NAME}" == pull_request ]]; then
+            files="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename')"
+            echo "${files}"
+            if ! grep -v '^codex-terminal/' <<< "${files}" > /dev/null; then
+              validate_claude=false
+            fi
+            if ! grep -v '^claude-terminal/' <<< "${files}" > /dev/null; then
+              validate_codex=false
+            fi
+          fi
+          {
+            echo "validate_claude=${validate_claude}"
+            echo "validate_codex=${validate_codex}"
+          } >> "${GITHUB_OUTPUT}"
 
       # Each version is published once: an existing tag is a release and is
       # never overwritten, so a push without a version bump publishes nothing.
@@ -63,6 +91,7 @@ jobs:
   claude:
     name: Validate claude-terminal
     needs: check
+    if: needs.check.outputs.validate_claude == 'true'
     uses: ./.github/workflows/validate-addon.yml
     with:
       addon: claude-terminal
@@ -71,6 +100,7 @@ jobs:
   codex:
     name: Validate codex-terminal
     needs: check
+    if: needs.check.outputs.validate_codex == 'true'
     uses: ./.github/workflows/validate-addon.yml
     with:
       addon: codex-terminal
@@ -115,8 +145,13 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 2
     steps:
-      - name: Require every job to succeed
+      - name: Require every needed job to succeed
         env:
           NEEDS: ${{ toJSON(needs) }}
         run: |
-          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")'
+          echo "$NEEDS" | jq -e '
+            def passed($job; $wanted):
+              .[$job].result == "success"
+              or (.[$job].result == "skipped" and .check.outputs[$wanted] == "false");
+            .check.result == "success" and passed("claude"; "validate_claude") and passed("codex"; "validate_codex")
+          '
