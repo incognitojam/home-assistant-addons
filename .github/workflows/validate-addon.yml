@@ -98,6 +98,16 @@ jobs:
             local/codex-terminal:${{ matrix.arch }} \
             -s < codex-terminal/tests/context-install.sh
 
+      - name: Test Codex version selection
+        if: inputs.addon == 'codex-terminal'
+        timeout-minutes: 3
+        run: |
+          docker run --rm --interactive --network none \
+            --platform ${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }} \
+            --entrypoint /bin/bash \
+            local/codex-terminal:${{ matrix.arch }} \
+            -s < codex-terminal/tests/version-selection.sh
+
       - name: Test Codex approval defaults
         if: inputs.addon == 'codex-terminal'
         timeout-minutes: 3

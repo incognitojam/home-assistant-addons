@@ -31,13 +31,15 @@ Codex state is stored in `/data/.codex`, including authentication, configuration
 
 The shell home directory and XDG directories are also stored under `/data` so command history and CLI state survive restarts.
 
-The app includes a pinned Codex version as a fallback. Opt-in npm updates are installed under `/data/npm`, take precedence, and survive app image upgrades.
+The app includes a pinned Codex version. Opt-in npm updates are installed under `/data/npm` and survive app image upgrades. Each time it starts, the app uses the persistent version only if it is newer than the bundled one.
 
 ## Codex Updates
 
-Updates are opt-in. In the Codex terminal, run `!codex update`, approve `/data/npm` access if prompted, then exit and reopen Codex. From a regular container shell, run `codex update`. See the [official Codex command reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
+Codex updates reach you as app updates, which are tested before release. Update the app from Home Assistant, or turn on its automatic updates. Codex doesn't prompt you to update when it starts. To turn the prompt back on, add `check_for_update_on_startup = true` to `/data/.codex/config.toml`.
 
-If a persistent version cannot run, the app uses the bundled version for that session. Remove the persistent version with `!/usr/local/bin/reset-codex-version`, then exit and reopen Codex.
+To get a new Codex release before the app update arrives, run `!codex update` in the Codex terminal, approve `/data/npm` access if prompted, then restart the app. From a regular container shell, run `codex update`. You can't stay on an older version this way: once an app update bundles the same or a newer Codex, the app uses that. See the [official Codex command reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli#codex-update).
+
+If a persistent version cannot run, the app uses the bundled version. Remove the persistent version with `!/usr/local/bin/reset-codex-version`, then restart the app.
 
 ## Home Assistant Access
 

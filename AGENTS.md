@@ -19,7 +19,7 @@ Both add-ons have `config.yaml` (Supervisor manifest, options and defaults), `Do
   - `codex-auth-launcher.sh` is the login menu shown before Codex starts.
   - `codex-defaults.toml` becomes `/etc/codex/config.toml`.
   - `reset-codex-version.sh` removes a user-installed Codex override.
-  - `tests/` contains the daemon and approval-default checks that CI runs.
+  - `tests/` contains the daemon, approval-default and version-selection checks that CI runs.
   - It has no options.
 
 At runtime, `/config` is the user's live Home Assistant configuration (read-write) and `/data` is the add-on's private persistent storage. `HOME` is `/data/home`, and everything outside `/data` and `/config` is reset when the add-on restarts or updates. Both add-ons have `hassio_role: manager` and the pinned `ha` CLI (`CLI_VERSION`).
@@ -91,5 +91,5 @@ On failure, `claude-terminal/tests/test-results/` holds the terminal buffer, con
 - Claude Code's native install: the image bakes a binary behind `/root/.local/bin/claude`. On fresh installs or the exact legacy fallback link to that path, `run.sh` copies the resolved bundled executable once to `/data/.local/share/claude/versions/<version>` and links `/data/home/.local/bin/claude` directly to it. Claude treats a chained launcher through `/root` as custom and will download updates without activating them. The direct persistent link lets Claude's native updater repoint it to downloaded versions, which survive restarts. Existing native-managed and custom launchers are preserved. Migration starts with the bundled version rather than guessing a release channel from cached downloads. `auto_update_claude` toggles `DISABLE_AUTOUPDATER`. Don't run `https://claude.ai/install.sh` at startup: it re-downloads the full binary.
 - On Alpine (musl), Claude Code needs `USE_BUILTIN_RIPGREP=0` and the system `ripgrep` package.
 - Don't install a `$BROWSER` or `xdg-open` shim in claude-terminal. If Claude finds a browser opener, it uses its localhost OAuth callback, which the user's remote browser can't reach. Without one, it shows a login URL and asks the user to paste back the code.
-- codex-terminal prefers a Codex the user installed into `/data/npm` (`npm install -g`), as long as it passes `codex --version`. Otherwise it uses the bundled `/usr/local/bin/codex`.
+- codex-terminal uses a Codex the user installed into `/data/npm` (`npm install -g`) only if it passes `codex --version` and is newer than the bundled `/usr/local/bin/codex`. Otherwise it uses the bundled one. `codex-defaults.toml` turns off Codex's startup update prompt, because "Update now" installs into `/data/npm`.
 - Each ttyd connection attaches to the shared tmux session through `scripts/attach-session.sh` and `/opt/tmux.conf`; tests kill the tmux server between tests.
