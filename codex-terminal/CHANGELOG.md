@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.37
+
+### Maintenance
+- Update the pinned Codex CLI fallback to 0.167.2.
+
 ## 0.2.36
 
 ### Maintenance
