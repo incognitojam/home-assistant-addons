@@ -113,10 +113,11 @@ test('the login URL opens in full from every wrapped row and a pasted code reach
     expect(prompts, 'xterm.js asks before opening each OSC 8 link').toHaveLength(rows.length);
     expect(prompts.every(prompt => prompt.includes(url)), 'every prompt names the full URL').toBe(true);
 
-    // Claude may mask the code, so compare its length, not its text.
+    // Claude may mask the code, so compare its length, not its text. The input
+    // follows the label after a `>` or, in newer Claude Code, inside a box.
     const code = 'e2e-synthetic-code-0123456789';
     await page.evaluate(code => window.term.paste(code), code);
-    const [, entered] = await waitForText(page, /paste code here if prompted > (\S+)/i, { message: 'the pasted code in the prompt' });
+    const [, entered] = await waitForText(page, /paste code here if prompted[\s>╭─╮│]+([^\s>╭─╮│╰╯]+)/i, { message: 'the pasted code in the prompt' });
     expect(entered).toHaveLength(code.length);
 });
 
